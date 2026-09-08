@@ -42,11 +42,12 @@ export default function DashboardPage() {
       <div style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '1.5rem' }}>
         <h2 style={{ marginBottom: '1rem' }}>Ujian Saya</h2>
         <p style={{ color: '#666', marginBottom: '1rem' }}>Belum ada ujian yang dibuat.</p>
-        <button
-          style={{ padding: '0.6rem 1.2rem', background: '#111', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        
+          href="/ujian/buat"
+          style={{ display: 'inline-block', padding: '0.6rem 1.2rem', background: '#111', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', textDecoration: 'none' }}
         >
           + Buat Ujian Baru
-        </button>
+        </a>
       </div>
     </div>
   );
