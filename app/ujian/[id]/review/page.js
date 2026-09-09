@@ -83,7 +83,10 @@ export default function ReviewUjianPage() {
 
   return (
     <div style={{ maxWidth: '650px', margin: '2rem auto', padding: '2rem', fontFamily: 'sans-serif' }}>
-      <a href={`/ujian/${id}/soal`} style={{ color: '#666', fontSize: '0.9rem', textDecoration: 'none' }}>← Kembali ke Soal</a>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <a href={`/ujian/${id}/soal`} style={{ color: '#666', fontSize: '0.9rem', textDecoration: 'none' }}>← Kembali ke Soal</a>
+        <a href={`/ujian/${id}/hasil`} style={{ color: '#111', fontSize: '0.9rem', textDecoration: 'none' }}>Lihat Hasil Siswa →</a>
+      </div>
       <h1 style={{ margin: '0.5rem 0' }}>Review Ujian</h1>
       <p style={{ color: '#666', marginBottom: '1.5rem' }}>{ujian.judul} — Kelas {ujian.kelas}</p>
 
