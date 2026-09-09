@@ -213,7 +213,9 @@ export default function KelolaSoalPage() {
     <div style={{ maxWidth: '700px', margin: '2rem auto', padding: '2rem', fontFamily: 'sans-serif' }}>
       <a href="/dashboard" style={{ color: '#666', fontSize: '0.9rem', textDecoration: 'none' }}>← Kembali ke Dashboard</a>
       <h1 style={{ margin: '0.5rem 0' }}>{ujian.judul}</h1>
-      <p style={{ color: '#666', marginBottom: '1.5rem' }}>Kelas {ujian.kelas}</p>
+      <p style={{ color: '#666', marginBottom: '1.5rem' }}>
+        Kelas {ujian.kelas} · <a href={`/ujian/${id}/review`} style={{ color: '#111' }}>Review & Terbitkan →</a>
+      </p>
 
       <div style={{ padding: '0.8rem 1rem', background: statusColor, color: '#fff', borderRadius: '6px', marginBottom: '2rem', fontWeight: 'bold' }}>
         {statusText}
