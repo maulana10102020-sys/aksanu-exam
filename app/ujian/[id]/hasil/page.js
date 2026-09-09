@@ -48,10 +48,7 @@ export default function HasilUjianPage() {
                 Kelas {s.kelas} · Nilai: <strong>{totalNilai}</strong> · Status: {s.status}
               </p>
             </div>
-            
-              href={`/ujian/${id}/hasil/${s.id}`}
-              style={{ padding: '0.4rem 0.8rem', background: '#111', color: '#fff', borderRadius: '4px', textDecoration: 'none', fontSize: '0.85rem' }}
-            >
+            <a href={`/ujian/${id}/hasil/${s.id}`} style={{ padding: '0.4rem 0.8rem', background: '#111', color: '#fff', borderRadius: '4px', textDecoration: 'none', fontSize: '0.85rem' }}>
               Lihat & Koreksi
             </a>
           </div>
