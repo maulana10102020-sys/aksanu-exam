@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Work+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --ink: #1E2A4A;
+  --ink-soft: #56637A;
+  --paper: #EEF1F6;
+  --paper-card: #FFFFFF;
+  --line: #D7DEE8;
+  --brass: #B98B3E;
+  --brass-strong: #8A6526;
+  --brass-strong-dark: #6E4E1C;
+  --success: #2F7D4F;
+  --danger: #B3423A;
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-sans: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+a { color: inherit; }
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  margin-top: 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--ink);
+  background: #fff;
+  transition: border-color 0.15s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--brass);
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  background: var(--brass-strong);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.btn-primary:hover { background: var(--brass-strong-dark); }
+.btn-primary:disabled { background: #C9B79A; cursor: not-allowed; }
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-text:hover { color: var(--ink); }
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+}
+
+.auth-brand {
+  flex: 1;
+  background: var(--ink);
+  color: #F3EFE4;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-form-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  background: var(--paper-card);
+}
+
+@media (max-width: 860px) {
+  .auth-shell { flex-direction: column; }
+  .auth-brand { padding: 2rem; }
+}

@@ -1,3 +1,5 @@
+import './globals.css';
+
 export const metadata = {
   title: 'Aksanu Exam',
   description: 'Sistem ujian online',
