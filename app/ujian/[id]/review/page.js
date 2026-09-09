@@ -19,10 +19,8 @@ export default function ReviewUjianPage() {
   const [soalList, setSoalList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
-  const [origin, setOrigin] = useState('');
 
   useEffect(() => {
-    setOrigin(window.location.origin);
     fetchData();
   }, [id]);
 
@@ -79,7 +77,8 @@ export default function ReviewUjianPage() {
     }
   }
 
-  const linkUjian = ujian.kode_ujian ? `${origin}/kerjakan/${ujian.kode_ujian}` : null;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+  const linkUjian = ujian.kode_ujian ? `${siteUrl}/kerjakan/${ujian.kode_ujian}` : null;
 
   return (
     <div style={{ maxWidth: '650px', margin: '2rem auto', padding: '2rem', fontFamily: 'sans-serif' }}>
@@ -117,15 +116,7 @@ export default function ReviewUjianPage() {
           <button
             onClick={handleTerbitkan}
             disabled={!valid || publishing}
-            style={{
-              marginTop: '1rem',
-              padding: '0.6rem 1.2rem',
-              background: valid ? '#111' : '#ccc',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: valid ? 'pointer' : 'not-allowed',
-            }}
+            style={{ marginTop: '1rem', padding: '0.6rem 1.2rem', background: valid ? '#111' : '#ccc', color: '#fff', border: 'none', borderRadius: '4px', cursor: valid ? 'pointer' : 'not-allowed' }}
           >
             {publishing ? 'Menerbitkan...' : 'Terbitkan Ujian'}
           </button>
