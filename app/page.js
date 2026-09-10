@@ -85,7 +85,7 @@ export default function LandingPage() {
             Susun soal, atur bobot nilai sampai tepat 100, dan bagikan satu tautan ke siswa. Jawaban dinilai otomatis begitu masuk, dan rekap nilai langsung tersusun.
           </p>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <a href="/login" className="btn-primary">Buat akun guru</a>
+            <a href="/daftar" className="btn-primary">Buat akun guru</a>
             <a href="/login" className="btn-text">Sudah punya akun? Masuk</a>
           </div>
         </div>
