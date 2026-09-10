@@ -24,7 +24,11 @@ export default function HasilUjianPage() {
   }
 
   if (loading) {
-    return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Memuat...</p>;
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+      </div>
+    );
   }
   if (!ujian) {
     return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Ujian tidak ditemukan.</p>;

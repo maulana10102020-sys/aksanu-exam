@@ -139,7 +139,13 @@ export default function KerjakanUjianPage() {
     }
   }
 
-  if (loading) return <p style={{ padding: '2rem', fontFamily: 'var(--font-sans)' }}>Memuat...</p>;
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   if (!ujian) {
     return (

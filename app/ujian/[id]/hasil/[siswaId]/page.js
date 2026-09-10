@@ -130,7 +130,13 @@ export default function KoreksiSiswaPage() {
     if (!error) { setSaved(true); fetchData(); }
   }
 
-  if (loading) return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Memuat...</p>;
+  if (loading) 
+    return (
+        <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+      </div>
+    );
+  }
   if (!siswa || !ujian) return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Data tidak ditemukan.</p>;
 
   const totalNilai = Number(siswa.skor_otomatis || 0) + soalList.filter((s) => s.jenis === 'uraian').reduce((sum, s) => sum + Number(koreksiUraian[s.id] || 0), 0);
