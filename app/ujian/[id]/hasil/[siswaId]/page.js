@@ -30,16 +30,8 @@ export default function KoreksiSiswaPage() {
     setSiswa(siswaData);
 
     if (siswaData) {
-      try {
-        setJawaban(JSON.parse(siswaData.jawaban || '{}'));
-      } catch (e) {
-        setJawaban({});
-      }
-      try {
-        setKoreksiUraian(JSON.parse(siswaData.koreksi_detail || '{}'));
-      } catch (e) {
-        setKoreksiUraian({});
-      }
+      try { setJawaban(JSON.parse(siswaData.jawaban || '{}')); } catch (e) { setJawaban({}); }
+      try { setKoreksiUraian(JSON.parse(siswaData.koreksi_detail || '{}')); } catch (e) { setKoreksiUraian({}); }
     }
     setLoading(false);
   }
@@ -116,14 +108,7 @@ export default function KoreksiSiswaPage() {
           </div>
           <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.25rem' }}>Rubrik: {rubrik.map((r) => `${r.aspek} (${r.bobot})`).join(', ')}</p>
           <label style={{ fontSize: '0.9rem' }}>Beri Skor (maks {s.bobot}):</label>
-          <input
-            type="number"
-            max={s.bobot}
-            min={0}
-            value={koreksiUraian[s.id] ?? ''}
-            onChange={(e) => updateKoreksi(s.id, e.target.value)}
-            style={{ width: '100px', padding: '0.4rem', marginLeft: '0.5rem' }}
-          />
+          <input type="number" max={s.bobot} min={0} value={koreksiUraian[s.id] ?? ''} onChange={(e) => updateKoreksi(s.id, e.target.value)} style={{ width: '100px', padding: '0.4rem', marginLeft: '0.5rem' }} />
         </div>
       );
     }
@@ -133,37 +118,22 @@ export default function KoreksiSiswaPage() {
 
   async function handleSimpanKoreksi() {
     setSaving(true);
-    const totalManual = soalList
-      .filter((s) => s.jenis === 'uraian')
-      .reduce((sum, s) => sum + Number(koreksiUraian[s.id] || 0), 0);
+    const totalManual = soalList.filter((s) => s.jenis === 'uraian').reduce((sum, s) => sum + Number(koreksiUraian[s.id] || 0), 0);
 
-    const { error } = await supabase
-      .from('jawaban_siswa')
-      .update({
-        skor_manual: totalManual,
-        koreksi_detail: JSON.stringify(koreksiUraian),
-        status: 'dikoreksi',
-      })
-      .eq('id', siswaId);
+    const { error } = await supabase.from('jawaban_siswa').update({
+      skor_manual: totalManual,
+      koreksi_detail: JSON.stringify(koreksiUraian),
+      status: 'dikoreksi',
+    }).eq('id', siswaId);
 
     setSaving(false);
-    if (!error) {
-      setSaved(true);
-      fetchData();
-    }
+    if (!error) { setSaved(true); fetchData(); }
   }
 
-  if (loading) {
-    return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Memuat...</p>;
-  }
-  if (!siswa || !ujian) {
-    return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Data tidak ditemukan.</p>;
-  }
+  if (loading) return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Memuat...</p>;
+  if (!siswa || !ujian) return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Data tidak ditemukan.</p>;
 
-  const totalNilai = Number(siswa.skor_otomatis || 0) + soalList
-    .filter((s) => s.jenis === 'uraian')
-    .reduce((sum, s) => sum + Number(koreksiUraian[s.id] || 0), 0);
-
+  const totalNilai = Number(siswa.skor_otomatis || 0) + soalList.filter((s) => s.jenis === 'uraian').reduce((sum, s) => sum + Number(koreksiUraian[s.id] || 0), 0);
   const adaUraian = soalList.some((s) => s.jenis === 'uraian');
 
   return (
@@ -185,11 +155,7 @@ export default function KoreksiSiswaPage() {
       ))}
 
       {adaUraian && (
-        <button
-          onClick={handleSimpanKoreksi}
-          disabled={saving}
-          style={{ padding: '0.7rem 1.4rem', background: '#111', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '1rem' }}
-        >
+        <button onClick={handleSimpanKoreksi} disabled={saving} style={{ padding: '0.7rem 1.4rem', background: '#111', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '1rem' }}>
           {saving ? 'Menyimpan...' : 'Simpan Koreksi'}
         </button>
       )}
