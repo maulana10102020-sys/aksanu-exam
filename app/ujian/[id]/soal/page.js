@@ -22,14 +22,12 @@ export default function KelolaSoalPage() {
   const [opsiB, setOpsiB] = useState('');
   const [opsiC, setOpsiC] = useState('');
   const [opsiD, setOpsiD] = useState('');
+  const [opsiE, setOpsiE] = useState('');
   const [kunciPG, setKunciPG] = useState('A');
 
   const [kunciBS, setKunciBS] = useState('Benar');
-
   const [kunciIsian, setKunciIsian] = useState('');
-
   const [pasangan, setPasangan] = useState([{ kiri: '', kanan: '' }]);
-
   const [rubrik, setRubrik] = useState([{ aspek: '', bobot: '' }]);
 
   useEffect(() => {
@@ -64,36 +62,30 @@ export default function KelolaSoalPage() {
   function resetForm() {
     setPertanyaan('');
     setBobot('');
-    setOpsiA(''); setOpsiB(''); setOpsiC(''); setOpsiD(''); setKunciPG('A');
+    setOpsiA(''); setOpsiB(''); setOpsiC(''); setOpsiD(''); setOpsiE(''); setKunciPG('A');
     setKunciBS('Benar');
     setKunciIsian('');
     setPasangan([{ kiri: '', kanan: '' }]);
     setRubrik([{ aspek: '', bobot: '' }]);
   }
 
-  function tambahBarisPasangan() {
-    setPasangan([...pasangan, { kiri: '', kanan: '' }]);
-  }
-  function hapusBarisPasangan(idx) {
-    setPasangan(pasangan.filter((_, i) => i !== idx));
-  }
+  function tambahBarisPasangan() { setPasangan([...pasangan, { kiri: '', kanan: '' }]); }
+  function hapusBarisPasangan(idx) { setPasangan(pasangan.filter((_, i) => i !== idx)); }
   function updatePasangan(idx, field, value) {
     const copy = [...pasangan];
     copy[idx][field] = value;
     setPasangan(copy);
   }
 
-  function tambahBarisRubrik() {
-    setRubrik([...rubrik, { aspek: '', bobot: '' }]);
-  }
-  function hapusBarisRubrik(idx) {
-    setRubrik(rubrik.filter((_, i) => i !== idx));
-  }
+  function tambahBarisRubrik() { setRubrik([...rubrik, { aspek: '', bobot: '' }]); }
+  function hapusBarisRubrik(idx) { setRubrik(rubrik.filter((_, i) => i !== idx)); }
   function updateRubrik(idx, field, value) {
     const copy = [...rubrik];
     copy[idx][field] = value;
     setRubrik(copy);
   }
+
+  const opsiPGTersedia = ['A', 'B', 'C', 'D', ...(opsiE.trim() ? ['E'] : [])];
 
   async function handleAddSoal(e) {
     e.preventDefault();
@@ -108,10 +100,14 @@ export default function KelolaSoalPage() {
 
     if (jenis === 'pg') {
       if (!opsiA || !opsiB || !opsiC || !opsiD) {
-        setError('Semua pilihan A-D wajib diisi.');
+        setError('Pilihan A sampai D wajib diisi. Opsi E boleh dikosongkan.');
         return;
       }
-      kunciData = JSON.stringify({ opsi: { A: opsiA, B: opsiB, C: opsiC, D: opsiD }, jawaban: kunciPG });
+      if (kunciPG === 'E' && !opsiE.trim()) {
+        setError('Opsi E kosong, tidak bisa dijadikan kunci jawaban.');
+        return;
+      }
+      kunciData = JSON.stringify({ opsi: { A: opsiA, B: opsiB, C: opsiC, D: opsiD, E: opsiE }, jawaban: kunciPG });
     } else if (jenis === 'benar_salah') {
       kunciData = kunciBS;
     } else if (jenis === 'isian') {
@@ -138,13 +134,7 @@ export default function KelolaSoalPage() {
 
     setSaving(true);
     const { error: insertError } = await supabase.from('soal').insert([
-      {
-        ujian_id: id,
-        jenis: jenis,
-        pertanyaan: pertanyaan,
-        bobot: Number(bobot),
-        kunci: kunciData,
-      },
+      { ujian_id: id, jenis: jenis, pertanyaan: pertanyaan, bobot: Number(bobot), kunci: kunciData },
     ]);
     setSaving(false);
 
@@ -173,6 +163,7 @@ export default function KelolaSoalPage() {
             <p>B. {parsed.opsi.B}</p>
             <p>C. {parsed.opsi.C}</p>
             <p>D. {parsed.opsi.D}</p>
+            {parsed.opsi.E && <p>E. {parsed.opsi.E}</p>}
             <p style={{ fontWeight: 'bold' }}>Kunci: {parsed.jawaban}</p>
           </div>
         );
@@ -181,9 +172,7 @@ export default function KelolaSoalPage() {
         const parsed = JSON.parse(s.kunci);
         return (
           <div style={{ fontSize: '0.85rem', color: '#666' }}>
-            {parsed.map((p, i) => (
-              <p key={i}>{p.kiri} → {p.kanan}</p>
-            ))}
+            {parsed.map((p, i) => <p key={i}>{p.kiri} → {p.kanan}</p>)}
           </div>
         );
       }
@@ -191,9 +180,7 @@ export default function KelolaSoalPage() {
         const parsed = JSON.parse(s.kunci);
         return (
           <div style={{ fontSize: '0.85rem', color: '#666' }}>
-            {parsed.map((r, i) => (
-              <p key={i}>{r.aspek}: {r.bobot} poin</p>
-            ))}
+            {parsed.map((r, i) => <p key={i}>{r.aspek}: {r.bobot} poin</p>)}
           </div>
         );
       }
@@ -201,21 +188,17 @@ export default function KelolaSoalPage() {
     return <p style={{ fontSize: '0.85rem', color: '#666' }}>Kunci: {s.kunci}</p>;
   }
 
-  if (loading) {
-    return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Memuat...</p>;
-  }
-
-  if (!ujian) {
-    return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Ujian tidak ditemukan.</p>;
-  }
+  if (loading) return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Memuat...</p>;
+  if (!ujian) return <p style={{ padding: '2rem', fontFamily: 'sans-serif' }}>Ujian tidak ditemukan.</p>;
 
   return (
     <div style={{ maxWidth: '700px', margin: '2rem auto', padding: '2rem', fontFamily: 'sans-serif' }}>
-      <a href="/dashboard" style={{ color: '#666', fontSize: '0.9rem', textDecoration: 'none' }}>← Kembali ke Dashboard</a>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <a href="/dashboard" style={{ color: '#666', fontSize: '0.9rem', textDecoration: 'none' }}>← Kembali ke Dashboard</a>
+        <a href={`/ujian/${id}/review`} style={{ color: '#111', fontSize: '0.9rem', textDecoration: 'none' }}>Review & Terbitkan →</a>
+      </div>
       <h1 style={{ margin: '0.5rem 0' }}>{ujian.judul}</h1>
-      <p style={{ color: '#666', marginBottom: '1.5rem' }}>
-        Kelas {ujian.kelas} · <a href={`/ujian/${id}/review`} style={{ color: '#111' }}>Review & Terbitkan →</a>
-      </p>
+      <p style={{ color: '#666', marginBottom: '1.5rem' }}>Kelas {ujian.kelas}</p>
 
       <div style={{ padding: '0.8rem 1rem', background: statusColor, color: '#fff', borderRadius: '6px', marginBottom: '2rem', fontWeight: 'bold' }}>
         {statusText}
@@ -237,27 +220,20 @@ export default function KelolaSoalPage() {
 
           <div style={{ marginBottom: '1rem' }}>
             <label>{jenis === 'menjodohkan' ? 'Instruksi Soal' : 'Pertanyaan'}</label>
-            <textarea
-              value={pertanyaan}
-              onChange={(e) => setPertanyaan(e.target.value)}
-              rows={3}
-              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
-            />
+            <textarea value={pertanyaan} onChange={(e) => setPertanyaan(e.target.value)} rows={3} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
           </div>
 
           {jenis === 'pg' && (
             <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f9f9f9', borderRadius: '6px' }}>
-              <label>Pilihan Jawaban</label>
+              <label>Pilihan Jawaban (A-D wajib, E opsional)</label>
               <input type="text" placeholder="A." value={opsiA} onChange={(e) => setOpsiA(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem' }} />
               <input type="text" placeholder="B." value={opsiB} onChange={(e) => setOpsiB(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem' }} />
               <input type="text" placeholder="C." value={opsiC} onChange={(e) => setOpsiC(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem' }} />
               <input type="text" placeholder="D." value={opsiD} onChange={(e) => setOpsiD(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem' }} />
+              <input type="text" placeholder="E. (opsional, boleh kosong)" value={opsiE} onChange={(e) => setOpsiE(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem' }} />
               <label style={{ display: 'block', marginTop: '0.75rem' }}>Kunci Jawaban</label>
               <select value={kunciPG} onChange={(e) => setKunciPG(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}>
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
+                {opsiPGTersedia.map((huruf) => <option key={huruf} value={huruf}>{huruf}</option>)}
               </select>
             </div>
           )}
@@ -284,17 +260,13 @@ export default function KelolaSoalPage() {
               <label>Pasangan Jawaban</label>
               {pasangan.map((p, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', alignItems: 'center' }}>
-                  <input type="text" placeholder="Item kiri (contoh: 1)" value={p.kiri} onChange={(e) => updatePasangan(idx, 'kiri', e.target.value)} style={{ flex: 1, padding: '0.5rem' }} />
+                  <input type="text" placeholder="Item kiri" value={p.kiri} onChange={(e) => updatePasangan(idx, 'kiri', e.target.value)} style={{ flex: 1, padding: '0.5rem' }} />
                   <span>→</span>
-                  <input type="text" placeholder="Jawaban (contoh: B)" value={p.kanan} onChange={(e) => updatePasangan(idx, 'kanan', e.target.value)} style={{ flex: 1, padding: '0.5rem' }} />
-                  {pasangan.length > 1 && (
-                    <button type="button" onClick={() => hapusBarisPasangan(idx)} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                  )}
+                  <input type="text" placeholder="Jawaban" value={p.kanan} onChange={(e) => updatePasangan(idx, 'kanan', e.target.value)} style={{ flex: 1, padding: '0.5rem' }} />
+                  {pasangan.length > 1 && <button type="button" onClick={() => hapusBarisPasangan(idx)} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
                 </div>
               ))}
-              <button type="button" onClick={tambahBarisPasangan} style={{ marginTop: '0.75rem', padding: '0.4rem 0.8rem', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                + Tambah Pasangan
-              </button>
+              <button type="button" onClick={tambahBarisPasangan} style={{ marginTop: '0.75rem', padding: '0.4rem 0.8rem', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>+ Tambah Pasangan</button>
             </div>
           )}
 
@@ -303,28 +275,18 @@ export default function KelolaSoalPage() {
               <label>Rubrik Penilaian</label>
               {rubrik.map((r, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', alignItems: 'center' }}>
-                  <input type="text" placeholder="Aspek (contoh: Ketepatan konsep)" value={r.aspek} onChange={(e) => updateRubrik(idx, 'aspek', e.target.value)} style={{ flex: 2, padding: '0.5rem' }} />
+                  <input type="text" placeholder="Aspek" value={r.aspek} onChange={(e) => updateRubrik(idx, 'aspek', e.target.value)} style={{ flex: 2, padding: '0.5rem' }} />
                   <input type="number" placeholder="Poin" value={r.bobot} onChange={(e) => updateRubrik(idx, 'bobot', e.target.value)} style={{ flex: 1, padding: '0.5rem' }} />
-                  {rubrik.length > 1 && (
-                    <button type="button" onClick={() => hapusBarisRubrik(idx)} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
-                  )}
+                  {rubrik.length > 1 && <button type="button" onClick={() => hapusBarisRubrik(idx)} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>}
                 </div>
               ))}
-              <button type="button" onClick={tambahBarisRubrik} style={{ marginTop: '0.75rem', padding: '0.4rem 0.8rem', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                + Tambah Aspek
-              </button>
-              <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '0.5rem' }}>Catatan: total poin rubrik sebaiknya sama dengan Bobot soal di bawah.</p>
+              <button type="button" onClick={tambahBarisRubrik} style={{ marginTop: '0.75rem', padding: '0.4rem 0.8rem', background: '#eee', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>+ Tambah Aspek</button>
             </div>
           )}
 
           <div style={{ marginBottom: '1rem' }}>
             <label>Bobot Soal (poin)</label>
-            <input
-              type="number"
-              value={bobot}
-              onChange={(e) => setBobot(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
-            />
+            <input type="number" value={bobot} onChange={(e) => setBobot(e.target.value)} style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }} />
           </div>
 
           {error && <p style={{ color: 'red', fontSize: '0.9rem' }}>{error}</p>}
