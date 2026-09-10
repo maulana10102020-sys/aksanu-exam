@@ -18,10 +18,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('guru');
-    if (!stored) {
-      router.push('/login');
-      return;
-    }
+    if (!stored) { router.push('/login'); return; }
     const guruData = JSON.parse(stored);
     setGuru(guruData);
     fetchUjian(guruData.id);
@@ -29,15 +26,8 @@ export default function DashboardPage() {
 
   async function fetchUjian(guruId) {
     setLoadingUjian(true);
-    const { data, error } = await supabase
-      .from('ujian')
-      .select('*')
-      .eq('guru_id', guruId)
-      .order('id', { ascending: false });
-
-    if (!error && data) {
-      setUjianList(data);
-    }
+    const { data, error } = await supabase.from('ujian').select('*').eq('guru_id', guruId).order('id', { ascending: false });
+    if (!error && data) setUjianList(data);
     setLoadingUjian(false);
   }
 
@@ -51,31 +41,19 @@ export default function DashboardPage() {
     setEditJudul(ujian.judul);
     setEditKelas(ujian.kelas);
   }
-
   function batalEdit() {
-    setEditingId(null);
-    setEditJudul('');
-    setEditKelas('');
+    setEditingId(null); setEditJudul(''); setEditKelas('');
   }
-
   async function simpanEdit(ujianId) {
     if (!editJudul || !editKelas) return;
     setSavingEdit(true);
-    const { error } = await supabase
-      .from('ujian')
-      .update({ judul: editJudul, kelas: editKelas })
-      .eq('id', ujianId);
+    const { error } = await supabase.from('ujian').update({ judul: editJudul, kelas: editKelas }).eq('id', ujianId);
     setSavingEdit(false);
-    if (!error) {
-      batalEdit();
-      fetchUjian(guru.id);
-    }
+    if (!error) { batalEdit(); fetchUjian(guru.id); }
   }
-
   async function hapusUjian(ujianId, judul) {
-    const yakin = confirm(`Hapus ujian "${judul}"? Semua soal dan jawaban siswa yang terkait akan ikut terhapus. Tindakan ini tidak bisa dibatalkan.`);
+    const yakin = confirm(`Hapus ujian "${judul}"? Semua soal dan jawaban siswa yang terkait akan ikut terhapus.`);
     if (!yakin) return;
-
     setDeletingId(ujianId);
     await supabase.from('jawaban_siswa').delete().eq('ujian_id', ujianId);
     await supabase.from('soal').delete().eq('ujian_id', ujianId);
@@ -85,78 +63,70 @@ export default function DashboardPage() {
   }
 
   if (!guru) {
-    return <p style={{ padding: '2rem', fontFamily: 'var(--font-sans)' }}>Memuat...</p>;
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+      </div>
+    );
   }
 
+  const inisial = guru.nama ? guru.nama.trim().charAt(0).toUpperCase() : 'G';
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--paper)' }}>
-      <header style={{ borderBottom: '1px solid var(--line)', padding: '1.25rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: 0 }}>Aksanu</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(160deg, #EAF1FB 0%, #F4F7FB 45%, #FCEDE3 100%)',
+    }}>
+      <header style={{ padding: '1.4rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(6px)', borderBottom: '1px solid var(--line)' }}>
+        <p className="gradient-text" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>Aksanu</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+          <div style={{
+            width: '34px', height: '34px', borderRadius: '50%',
+            background: 'linear-gradient(135deg, var(--brass), var(--brass-strong))',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.9rem', fontWeight: 700,
+          }}>
+            {inisial}
+          </div>
           <p style={{ fontSize: '0.9rem', color: 'var(--ink-soft)', margin: 0 }}>{guru.nama}</p>
           <button onClick={handleLogout} className="btn-text">Keluar</button>
         </div>
       </header>
 
-      <main style={{ maxWidth: '720px', margin: '0 auto', padding: '2.5rem 2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.5rem' }}>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.7rem', fontWeight: 500, margin: 0 }}>Ujian saya</h1>
+      <main style={{ maxWidth: '980px', margin: '0 auto', padding: '2.5rem 2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.75rem' }}>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 500, margin: 0 }}>Ujian saya</h1>
           <a href="/ujian/buat" className="btn-primary">Buat ujian baru</a>
         </div>
 
-        {loadingUjian && <p style={{ color: 'var(--ink-soft)' }}>Memuat daftar ujian...</p>}
+        {loadingUjian && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
+            <div className="spinner" />
+          </div>
+        )}
 
         {!loadingUjian && ujianList.length === 0 && (
           <div style={{ border: '1px solid var(--line)', borderRadius: '10px', padding: '2rem', background: 'var(--paper-card)' }}>
-            <p style={{ color: 'var(--ink-soft)', margin: 0 }}>
-              Belum ada ujian. Buat yang pertama untuk mulai menyusun soal.
-            </p>
+            <p style={{ color: 'var(--ink-soft)', margin: 0 }}>Belum ada ujian. Buat yang pertama untuk mulai menyusun soal.</p>
           </div>
         )}
 
         {!loadingUjian && ujianList.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
             {ujianList.map((ujian) => {
               const terbit = ujian.status === 'terbit';
               const sedangEdit = editingId === ujian.id;
 
               if (sedangEdit) {
                 return (
-                  <div
-                    key={ujian.id}
-                    style={{
-                      background: 'var(--paper-card)',
-                      borderRadius: '8px',
-                      border: '1px solid var(--brass)',
-                      padding: '1.1rem 1.25rem',
-                    }}
-                  >
-                    <div style={{ marginBottom: '0.6rem' }}>
-                      <label style={{ fontSize: '0.8rem', color: 'var(--ink-soft)' }}>Judul Ujian</label>
-                      <input
-                        type="text"
-                        className="input"
-                        value={editJudul}
-                        onChange={(e) => setEditJudul(e.target.value)}
-                      />
-                    </div>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label style={{ fontSize: '0.8rem', color: 'var(--ink-soft)' }}>Kelas</label>
-                      <input
-                        type="text"
-                        className="input"
-                        value={editKelas}
-                        onChange={(e) => setEditKelas(e.target.value)}
-                      />
-                    </div>
+                  <div key={ujian.id} style={{ background: 'var(--paper-card)', borderRadius: '10px', border: '1px solid var(--brass-strong)', padding: '1.1rem' }}>
+                    <label style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Judul</label>
+                    <input type="text" className="input" value={editJudul} onChange={(e) => setEditJudul(e.target.value)} style={{ marginBottom: '0.6rem' }} />
+                    <label style={{ fontSize: '0.78rem', color: 'var(--ink-soft)' }}>Kelas</label>
+                    <input type="text" className="input" value={editKelas} onChange={(e) => setEditKelas(e.target.value)} style={{ marginBottom: '0.8rem' }} />
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button
-                        onClick={() => simpanEdit(ujian.id)}
-                        disabled={savingEdit}
-                        className="btn-primary"
-                        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                      >
-                        {savingEdit ? 'Menyimpan...' : 'Simpan'}
+                      <button onClick={() => simpanEdit(ujian.id)} disabled={savingEdit} className="btn-primary" style={{ fontSize: '0.82rem', padding: '0.45rem 0.9rem' }}>
+                        {savingEdit ? '...' : 'Simpan'}
                       </button>
                       <button onClick={batalEdit} className="btn-text">Batal</button>
                     </div>
@@ -169,29 +139,39 @@ export default function DashboardPage() {
                   key={ujian.id}
                   style={{
                     background: 'var(--paper-card)',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     border: '1px solid var(--line)',
-                    borderLeftWidth: '3px',
-                    borderLeftColor: terbit ? 'var(--brass)' : 'var(--line)',
-                    padding: '1.1rem 1.25rem',
+                    borderTop: `4px solid ${terbit ? 'var(--brass-strong)' : 'var(--line)'}`,
+                    padding: '1.1rem',
                     display: 'flex',
+                    flexDirection: 'column',
                     justifyContent: 'space-between',
-                    alignItems: 'center',
+                    minHeight: '170px',
                     opacity: deletingId === ujian.id ? 0.5 : 1,
+                    boxShadow: '0 8px 20px -14px rgba(15,42,74,0.25)',
                   }}
                 >
                   <div>
-                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 500, margin: '0 0 0.25rem' }}>
+                    <p style={{
+                      fontFamily: 'var(--font-serif)', fontSize: '1.05rem', fontWeight: 500, margin: '0 0 0.35rem',
+                      display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                    }}>
                       {ujian.judul}
                     </p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', margin: 0 }}>
-                      Kelas {ujian.kelas} · Bobot {ujian.total_bobot}/100 · {terbit ? 'Terbit' : 'Draf'}
+                    <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', margin: 0 }}>
+                      Kelas {ujian.kelas} · {ujian.total_bobot}/100 · {terbit ? 'Terbit' : 'Draf'}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <button onClick={() => mulaiEdit(ujian)} className="btn-text">Edit</button>
-                    <button onClick={() => hapusUjian(ujian.id, ujian.judul)} className="btn-text" style={{ color: 'var(--danger)' }}>Hapus</button>
-                    <a href={`/ujian/${ujian.id}/soal`} className="btn-text">Kelola soal</a>
+
+                  <div style={{ marginTop: '1rem' }}>
+                    <a href={`/ujian/${ujian.id}/soal`} className="btn-primary" style={{ fontSize: '0.8rem', padding: '0.45rem 0.8rem', display: 'block', textAlign: 'center', marginBottom: '0.5rem' }}>
+                      Kelola soal
+                    </a>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', fontSize: '0.78rem' }}>
+                      <a href={`/ujian/${ujian.id}/review`} className="btn-text" style={{ fontSize: '0.78rem' }}>Review</a>
+                      <button onClick={() => mulaiEdit(ujian)} className="btn-text" style={{ fontSize: '0.78rem' }}>Edit</button>
+                      <button onClick={() => hapusUjian(ujian.id, ujian.judul)} className="btn-text" style={{ fontSize: '0.78rem', color: 'var(--danger)' }}>Hapus</button>
+                    </div>
                   </div>
                 </div>
               );
