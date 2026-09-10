@@ -25,7 +25,24 @@ export default function KerjakanUjianPage() {
   const itemRefs = useRef([]);
   const containerRef = useRef(null);
 
+  const [pelanggaran, setPelanggaran] = useState(0);
+  const [showToast, setShowToast] = useState(false);
+
   useEffect(() => { fetchUjian(); }, [kode]);
+
+  useEffect(() => {
+    if (step !== 'mengerjakan') return;
+    function handleVisibility() {
+      if (document.hidden) {
+        setPelanggaran((prev) => prev + 1);
+      } else {
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3500);
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [step]);
 
   async function fetchUjian() {
     setLoading(true);
@@ -112,7 +129,7 @@ export default function KerjakanUjianPage() {
     setSubmitting(true);
     const { skor, rekap } = hitungSkorDanRekap();
     const { error: insertError } = await supabase.from('jawaban_siswa').insert([
-      { ujian_id: ujian.id, nama, nis, kelas, jawaban: JSON.stringify(jawaban), skor_otomatis: skor, status: 'terkirim' },
+      { ujian_id: ujian.id, nama, nis, kelas, jawaban: JSON.stringify(jawaban), skor_otomatis: skor, status: 'terkirim', pelanggaran },
     ]);
     setSubmitting(false);
     if (!insertError) { setSkorAkhir(skor); setRekapAkhir(rekap); setStep('selesai'); }
@@ -207,6 +224,9 @@ export default function KerjakanUjianPage() {
               <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Kelas</label>
               <input type="text" className="input" value={kelas} onChange={(e) => setKelas(e.target.value)} />
             </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--ink-soft)', marginBottom: '1rem' }}>
+              Selama mengerjakan, hindari berpindah tab atau aplikasi lain — ini akan tercatat.
+            </p>
             {error && <p style={{ color: 'var(--danger)', fontSize: '0.9rem', marginBottom: '1rem' }}>{error}</p>}
             <button type="submit" className="btn-primary" style={{ width: '100%', textAlign: 'center' }}>Mulai Mengerjakan</button>
           </form>
@@ -216,7 +236,13 @@ export default function KerjakanUjianPage() {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)', background: gradasiBg, overflow: 'hidden' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)', background: gradasiBg, overflow: 'hidden', position: 'relative' }}>
+      {showToast && (
+        <div className="fade-in-up" style={{ position: 'fixed', top: '14px', left: '50%', transform: 'translateX(-50%)', background: 'var(--danger)', color: '#fff', padding: '0.6rem 1.1rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 600, boxShadow: '0 10px 25px -10px rgba(179,66,58,0.6)', zIndex: 50 }}>
+          Kamu meninggalkan halaman ujian — ini tercatat sebagai pelanggaran.
+        </div>
+      )}
+
       <div style={{ padding: 'clamp(0.75rem, 3vw, 1rem) clamp(1rem, 4vw, 1.5rem) 0.85rem', background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)', boxShadow: '0 8px 20px -16px rgba(15,42,74,0.3)' }}>
         <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', margin: '0 0 0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ujian.judul} · {nama}</p>
 
@@ -233,16 +259,11 @@ export default function KerjakanUjianPage() {
                 key={s.id}
                 onClick={() => scrollToIndex(idx)}
                 style={{
-                  flexShrink: 0,
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
+                  flexShrink: 0, width: '30px', height: '30px', borderRadius: '50%',
                   border: aktif ? '2px solid var(--ink)' : '1px solid var(--line)',
                   background: dijawab ? 'linear-gradient(135deg, var(--brass), var(--brass-strong))' : '#fff',
                   color: dijawab ? '#fff' : 'var(--ink-soft)',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
+                  fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
                   boxShadow: aktif ? '0 0 0 4px rgba(242,98,42,0.15)' : 'none',
                   transition: 'all 0.2s ease',
                 }}
@@ -273,15 +294,9 @@ export default function KerjakanUjianPage() {
               key={s.id}
               ref={(el) => (itemRefs.current[idx] = el)}
               style={{
-                scrollSnapAlign: 'center',
-                maxWidth: 'min(560px, 100%)',
-                margin: '0 auto clamp(1.5rem, 6vw, 3rem)',
-                padding: 'clamp(1.1rem, 5vw, 1.85rem)',
-                background: 'var(--paper-card)',
-                borderRadius: '16px',
-                boxShadow: '0 20px 45px -28px rgba(15,42,74,0.35)',
-                transition: 'all 0.3s ease',
-                ...gaya,
+                scrollSnapAlign: 'center', maxWidth: 'min(560px, 100%)', margin: '0 auto clamp(1.5rem, 6vw, 3rem)',
+                padding: 'clamp(1.1rem, 5vw, 1.85rem)', background: 'var(--paper-card)', borderRadius: '16px',
+                boxShadow: '0 20px 45px -28px rgba(15,42,74,0.35)', transition: 'all 0.3s ease', ...gaya,
               }}
             >
               <span style={{ display: 'inline-block', fontSize: '0.75rem', color: 'var(--ink-soft)', background: 'var(--paper)', padding: '0.25rem 0.7rem', borderRadius: '999px', marginBottom: '0.9rem' }}>

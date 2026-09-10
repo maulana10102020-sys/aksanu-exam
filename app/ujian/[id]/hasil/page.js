@@ -22,20 +22,12 @@ export default function HasilUjianPage() {
   }
 
   function unduhCSV() {
-    const header = ['Nama', 'NIS', 'Kelas', 'Skor Otomatis', 'Skor Manual', 'Total Nilai', 'Status'];
+    const header = ['Nama', 'NIS', 'Kelas', 'Skor Otomatis', 'Skor Manual', 'Total Nilai', 'Status', 'Pelanggaran'];
     const rows = daftar.map((s) => [
-      s.nama,
-      s.nis,
-      s.kelas,
-      s.skor_otomatis || 0,
-      s.skor_manual || 0,
-      Number(s.skor_otomatis || 0) + Number(s.skor_manual || 0),
-      s.status,
+      s.nama, s.nis, s.kelas, s.skor_otomatis || 0, s.skor_manual || 0,
+      Number(s.skor_otomatis || 0) + Number(s.skor_manual || 0), s.status, s.pelanggaran || 0,
     ]);
-    const csvContent = [header, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
+    const csvContent = [header, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -65,9 +57,7 @@ export default function HasilUjianPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '0.5rem', marginBottom: '0.25rem' }}>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 500, margin: 0 }}>Hasil Ujian</h1>
           {daftar.length > 0 && (
-            <button onClick={unduhCSV} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}>
-              Unduh CSV
-            </button>
+            <button onClick={unduhCSV} className="btn-primary" style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}>Unduh CSV</button>
           )}
         </div>
         <p style={{ color: 'var(--ink-soft)', marginBottom: '1.75rem' }}>{ujian.judul} — Kelas {ujian.kelas}</p>
@@ -84,14 +74,17 @@ export default function HasilUjianPage() {
           return (
             <div key={s.id} style={{ border: '1px solid var(--line)', borderRadius: '10px', padding: '1.1rem 1.25rem', marginBottom: '0.75rem', background: 'var(--paper-card)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 8px 20px -16px rgba(15,42,74,0.2)' }}>
               <div>
-                <p style={{ fontWeight: 600, margin: '0 0 0.2rem' }}>
+                <p style={{ fontWeight: 600, margin: '0 0 0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {s.nama} <span style={{ fontWeight: 400, color: 'var(--ink-soft)', fontSize: '0.85rem' }}>({s.nis})</span>
+                  {s.pelanggaran > 0 && (
+                    <span style={{ fontSize: '0.72rem', color: '#fff', background: 'var(--danger)', padding: '0.15rem 0.5rem', borderRadius: '999px' }}>
+                      ⚠ {s.pelanggaran}x keluar tab
+                    </span>
+                  )}
                 </p>
                 <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', margin: 0 }}>
                   Kelas {s.kelas} · Nilai: <strong style={{ color: 'var(--ink)' }}>{totalNilai}</strong> ·{' '}
-                  <span style={{ color: sudahDikoreksi ? 'var(--success)' : 'var(--ink-soft)' }}>
-                    {sudahDikoreksi ? 'Dikoreksi' : 'Terkirim'}
-                  </span>
+                  <span style={{ color: sudahDikoreksi ? 'var(--success)' : 'var(--ink-soft)' }}>{sudahDikoreksi ? 'Dikoreksi' : 'Terkirim'}</span>
                 </p>
               </div>
               <a href={`/ujian/${id}/hasil/${s.id}`} className="btn-text">Lihat & Koreksi</a>
