@@ -10,6 +10,12 @@ export default function DashboardPage() {
   const [loadingUjian, setLoadingUjian] = useState(true);
   const router = useRouter();
 
+  const [editingId, setEditingId] = useState(null);
+  const [editJudul, setEditJudul] = useState('');
+  const [editKelas, setEditKelas] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
   useEffect(() => {
     const stored = localStorage.getItem('guru');
     if (!stored) {
@@ -38,6 +44,44 @@ export default function DashboardPage() {
   function handleLogout() {
     localStorage.removeItem('guru');
     router.push('/login');
+  }
+
+  function mulaiEdit(ujian) {
+    setEditingId(ujian.id);
+    setEditJudul(ujian.judul);
+    setEditKelas(ujian.kelas);
+  }
+
+  function batalEdit() {
+    setEditingId(null);
+    setEditJudul('');
+    setEditKelas('');
+  }
+
+  async function simpanEdit(ujianId) {
+    if (!editJudul || !editKelas) return;
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from('ujian')
+      .update({ judul: editJudul, kelas: editKelas })
+      .eq('id', ujianId);
+    setSavingEdit(false);
+    if (!error) {
+      batalEdit();
+      fetchUjian(guru.id);
+    }
+  }
+
+  async function hapusUjian(ujianId, judul) {
+    const yakin = confirm(`Hapus ujian "${judul}"? Semua soal dan jawaban siswa yang terkait akan ikut terhapus. Tindakan ini tidak bisa dibatalkan.`);
+    if (!yakin) return;
+
+    setDeletingId(ujianId);
+    await supabase.from('jawaban_siswa').delete().eq('ujian_id', ujianId);
+    await supabase.from('soal').delete().eq('ujian_id', ujianId);
+    await supabase.from('ujian').delete().eq('id', ujianId);
+    setDeletingId(null);
+    fetchUjian(guru.id);
   }
 
   if (!guru) {
@@ -74,13 +118,58 @@ export default function DashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {ujianList.map((ujian) => {
               const terbit = ujian.status === 'terbit';
+              const sedangEdit = editingId === ujian.id;
+
+              if (sedangEdit) {
+                return (
+                  <div
+                    key={ujian.id}
+                    style={{
+                      background: 'var(--paper-card)',
+                      borderRadius: '8px',
+                      border: '1px solid var(--brass)',
+                      padding: '1.1rem 1.25rem',
+                    }}
+                  >
+                    <div style={{ marginBottom: '0.6rem' }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--ink-soft)' }}>Judul Ujian</label>
+                      <input
+                        type="text"
+                        className="input"
+                        value={editJudul}
+                        onChange={(e) => setEditJudul(e.target.value)}
+                      />
+                    </div>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--ink-soft)' }}>Kelas</label>
+                      <input
+                        type="text"
+                        className="input"
+                        value={editKelas}
+                        onChange={(e) => setEditKelas(e.target.value)}
+                      />
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => simpanEdit(ujian.id)}
+                        disabled={savingEdit}
+                        className="btn-primary"
+                        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                      >
+                        {savingEdit ? 'Menyimpan...' : 'Simpan'}
+                      </button>
+                      <button onClick={batalEdit} className="btn-text">Batal</button>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={ujian.id}
                   style={{
                     background: 'var(--paper-card)',
                     borderRadius: '8px',
-                    borderLeft: `3px solid ${terbit ? 'var(--brass)' : 'var(--line)'}`,
                     border: '1px solid var(--line)',
                     borderLeftWidth: '3px',
                     borderLeftColor: terbit ? 'var(--brass)' : 'var(--line)',
@@ -88,6 +177,7 @@ export default function DashboardPage() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
+                    opacity: deletingId === ujian.id ? 0.5 : 1,
                   }}
                 >
                   <div>
@@ -98,9 +188,11 @@ export default function DashboardPage() {
                       Kelas {ujian.kelas} · Bobot {ujian.total_bobot}/100 · {terbit ? 'Terbit' : 'Draf'}
                     </p>
                   </div>
-                  <a href={`/ujian/${ujian.id}/soal`} className="btn-text">
-                    Kelola soal
-                  </a>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <button onClick={() => mulaiEdit(ujian)} className="btn-text">Edit</button>
+                    <button onClick={() => hapusUjian(ujian.id, ujian.judul)} className="btn-text" style={{ color: 'var(--danger)' }}>Hapus</button>
+                    <a href={`/ujian/${ujian.id}/soal`} className="btn-text">Kelola soal</a>
+                  </div>
                 </div>
               );
             })}
