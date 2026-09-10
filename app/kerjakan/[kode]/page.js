@@ -149,23 +149,23 @@ export default function KerjakanUjianPage() {
     const menunggu = rekapAkhir.filter((r) => r.status === 'uraian').map((r) => r.nomor);
 
     return (
-      <div style={{ minHeight: '100vh', background: gradasiBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div className="fade-in-up" style={{ maxWidth: '460px', width: '100%', background: 'var(--paper-card)', borderRadius: '18px', padding: '2.5rem 2rem', textAlign: 'center', boxShadow: '0 30px 60px -30px rgba(15,42,74,0.4)' }}>
+      <div style={{ minHeight: '100vh', background: gradasiBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(1rem, 5vw, 2rem)' }}>
+        <div className="fade-in-up" style={{ maxWidth: '460px', width: '100%', background: 'var(--paper-card)', borderRadius: '18px', padding: 'clamp(1.5rem, 6vw, 2.5rem) clamp(1.25rem, 5vw, 2rem)', textAlign: 'center', boxShadow: '0 30px 60px -30px rgba(15,42,74,0.4)' }}>
           <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', letterSpacing: '0.03em', marginBottom: '0.75rem' }}>JAWABAN TERKIRIM</p>
           <p style={{ marginBottom: '0.25rem', fontFamily: 'var(--font-sans)' }}>Terima kasih, <strong>{nama}</strong></p>
-          <p className="gradient-text" style={{ fontFamily: 'var(--font-serif)', fontSize: '3.4rem', fontWeight: 600, margin: '0.5rem 0 0' }}>{skorAkhir}</p>
+          <p className="gradient-text" style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(2.4rem, 12vw, 3.4rem)', fontWeight: 600, margin: '0.5rem 0 0' }}>{skorAkhir}</p>
           <p style={{ color: 'var(--ink-soft)', marginBottom: '2rem', fontSize: '0.9rem' }}>dari 100 poin (otomatis)</p>
 
           <div style={{ textAlign: 'left', borderTop: '1px solid var(--line)', paddingTop: '1.5rem' }}>
             <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', marginBottom: '0.6rem' }}>Jawaban benar</p>
-            <p style={{ marginBottom: '1.25rem', lineHeight: 2.2 }}>
+            <p style={{ marginBottom: '1.25rem', lineHeight: 2.4 }}>
               {benar.length > 0 ? benar.map((n) => (
                 <span key={n} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '50%', background: 'var(--success)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, marginRight: '0.4rem', boxShadow: '0 4px 10px -4px rgba(47,125,79,0.5)' }}>{n}</span>
               )) : <span style={{ color: 'var(--ink-soft)', fontSize: '0.85rem' }}>Tidak ada</span>}
             </p>
 
             <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', marginBottom: '0.6rem' }}>Jawaban salah</p>
-            <p style={{ marginBottom: menunggu.length > 0 ? '1.25rem' : 0, lineHeight: 2.2 }}>
+            <p style={{ marginBottom: menunggu.length > 0 ? '1.25rem' : 0, lineHeight: 2.4 }}>
               {salah.length > 0 ? salah.map((n) => (
                 <span key={n} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '50%', background: 'var(--danger)', color: '#fff', fontSize: '0.8rem', fontWeight: 600, marginRight: '0.4rem', boxShadow: '0 4px 10px -4px rgba(179,66,58,0.5)' }}>{n}</span>
               )) : <span style={{ color: 'var(--ink-soft)', fontSize: '0.85rem' }}>Tidak ada</span>}
@@ -174,7 +174,7 @@ export default function KerjakanUjianPage() {
             {menunggu.length > 0 && (
               <>
                 <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', marginBottom: '0.6rem' }}>Menunggu koreksi guru</p>
-                <p style={{ lineHeight: 2.2 }}>
+                <p style={{ lineHeight: 2.4 }}>
                   {menunggu.map((n) => (
                     <span key={n} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '50%', border: '1.5px solid var(--line)', background: '#fff', color: 'var(--ink)', fontSize: '0.8rem', fontWeight: 600, marginRight: '0.4rem' }}>{n}</span>
                   ))}
@@ -189,10 +189,10 @@ export default function KerjakanUjianPage() {
 
   if (step === 'identitas') {
     return (
-      <div style={{ minHeight: '100vh', background: gradasiBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div style={{ maxWidth: '420px', width: '100%', background: 'var(--paper-card)', borderRadius: '18px', padding: '2.5rem 2rem', boxShadow: '0 30px 60px -30px rgba(15,42,74,0.4)' }}>
+      <div style={{ minHeight: '100vh', background: gradasiBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(1rem, 5vw, 2rem)' }}>
+        <div style={{ maxWidth: '420px', width: '100%', background: 'var(--paper-card)', borderRadius: '18px', padding: 'clamp(1.5rem, 6vw, 2.5rem) clamp(1.25rem, 5vw, 2rem)', boxShadow: '0 30px 60px -30px rgba(15,42,74,0.4)' }}>
           <p className="gradient-text" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.1rem', fontWeight: 600, marginBottom: '1.5rem' }}>Aksanu</p>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 500, margin: '0 0 0.25rem' }}>{ujian.judul}</h1>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.25rem, 6vw, 1.5rem)', fontWeight: 500, margin: '0 0 0.25rem' }}>{ujian.judul}</h1>
           <p style={{ color: 'var(--ink-soft)', marginBottom: '1.75rem' }}>Kelas {ujian.kelas}</p>
           <form onSubmit={handleMulai}>
             <div style={{ marginBottom: '1rem' }}>
@@ -217,14 +217,14 @@ export default function KerjakanUjianPage() {
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)', background: gradasiBg, overflow: 'hidden' }}>
-      <div style={{ padding: '1rem 1.5rem 0.85rem', background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)', boxShadow: '0 8px 20px -16px rgba(15,42,74,0.3)' }}>
-        <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', margin: '0 0 0.6rem' }}>{ujian.judul} · {nama}</p>
+      <div style={{ padding: 'clamp(0.75rem, 3vw, 1rem) clamp(1rem, 4vw, 1.5rem) 0.85rem', background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)', boxShadow: '0 8px 20px -16px rgba(15,42,74,0.3)' }}>
+        <p style={{ fontSize: '0.8rem', color: 'var(--ink-soft)', margin: '0 0 0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ujian.judul} · {nama}</p>
 
         <div style={{ height: '5px', background: 'var(--line)', borderRadius: '3px', overflow: 'hidden', marginBottom: '0.75rem' }}>
           <div style={{ height: '100%', width: `${persenProgress}%`, background: 'linear-gradient(90deg, var(--brass), var(--brass-strong))', transition: 'width 0.3s ease' }} />
         </div>
 
-        <div style={{ display: 'flex', gap: '0.45rem', overflowX: 'auto', paddingBottom: '0.15rem' }}>
+        <div style={{ display: 'flex', gap: 'clamp(0.3rem, 1.5vw, 0.45rem)', overflowX: 'auto', paddingBottom: '0.15rem' }}>
           {soalList.map((s, idx) => {
             const dijawab = apaSudahDijawab(s);
             const aktif = idx === activeIndex;
@@ -234,13 +234,13 @@ export default function KerjakanUjianPage() {
                 onClick={() => scrollToIndex(idx)}
                 style={{
                   flexShrink: 0,
-                  width: '32px',
-                  height: '32px',
+                  width: '30px',
+                  height: '30px',
                   borderRadius: '50%',
                   border: aktif ? '2px solid var(--ink)' : '1px solid var(--line)',
                   background: dijawab ? 'linear-gradient(135deg, var(--brass), var(--brass-strong))' : '#fff',
                   color: dijawab ? '#fff' : 'var(--ink-soft)',
-                  fontSize: '0.8rem',
+                  fontSize: '0.78rem',
                   fontWeight: 600,
                   cursor: 'pointer',
                   boxShadow: aktif ? '0 0 0 4px rgba(242,98,42,0.15)' : 'none',
@@ -254,7 +254,7 @@ export default function KerjakanUjianPage() {
         </div>
       </div>
 
-      <div ref={containerRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', scrollSnapType: 'y mandatory', padding: '22vh 1.5rem' }}>
+      <div ref={containerRef} onScroll={handleScroll} style={{ flex: 1, overflowY: 'auto', scrollSnapType: 'y mandatory', padding: '18vh clamp(0.75rem, 4vw, 1.5rem)' }}>
         {soalList.map((s, idx) => {
           const distance = Math.abs(idx - activeIndex);
           const gaya = distance === 0
@@ -274,9 +274,9 @@ export default function KerjakanUjianPage() {
               ref={(el) => (itemRefs.current[idx] = el)}
               style={{
                 scrollSnapAlign: 'center',
-                maxWidth: '560px',
-                margin: '0 auto 3rem',
-                padding: '1.85rem',
+                maxWidth: 'min(560px, 100%)',
+                margin: '0 auto clamp(1.5rem, 6vw, 3rem)',
+                padding: 'clamp(1.1rem, 5vw, 1.85rem)',
                 background: 'var(--paper-card)',
                 borderRadius: '16px',
                 boxShadow: '0 20px 45px -28px rgba(15,42,74,0.35)',
@@ -287,19 +287,19 @@ export default function KerjakanUjianPage() {
               <span style={{ display: 'inline-block', fontSize: '0.75rem', color: 'var(--ink-soft)', background: 'var(--paper)', padding: '0.25rem 0.7rem', borderRadius: '999px', marginBottom: '0.9rem' }}>
                 Soal {idx + 1} dari {soalList.length}
               </span>
-              <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', lineHeight: 1.5, marginBottom: '1.25rem' }}>{s.pertanyaan}</p>
+              <p style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.05rem, 4.5vw, 1.2rem)', lineHeight: 1.5, marginBottom: '1.25rem' }}>{s.pertanyaan}</p>
 
               {s.jenis === 'pg' && (
                 <div>
                   {['A', 'B', 'C', 'D', 'E'].filter((h) => opsi[h]).map((huruf) => {
                     const aktif = jawaban[s.id] === huruf;
                     return (
-                      <label key={huruf} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', marginBottom: '0.55rem', borderRadius: '10px', border: `1.5px solid ${aktif ? 'var(--brass-strong)' : 'var(--line)'}`, background: aktif ? 'rgba(242,98,42,0.07)' : '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                      <label key={huruf} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: 'clamp(0.6rem, 3vw, 0.75rem) clamp(0.75rem, 3vw, 1rem)', marginBottom: '0.55rem', borderRadius: '10px', border: `1.5px solid ${aktif ? 'var(--brass-strong)' : 'var(--line)'}`, background: aktif ? 'rgba(242,98,42,0.07)' : '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                         <input type="radio" name={`soal-${s.id}`} checked={aktif} onChange={() => setJawabanSoal(s.id, huruf)} style={{ display: 'none' }} />
                         <span style={{ width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${aktif ? 'var(--brass-strong)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           {aktif && <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--brass-strong)' }} />}
                         </span>
-                        <span><strong style={{ color: 'var(--ink-soft)', marginRight: '0.3rem' }}>{huruf}</strong>{opsi[huruf]}</span>
+                        <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1rem)' }}><strong style={{ color: 'var(--ink-soft)', marginRight: '0.3rem' }}>{huruf}</strong>{opsi[huruf]}</span>
                       </label>
                     );
                   })}
@@ -311,12 +311,12 @@ export default function KerjakanUjianPage() {
                   {['Benar', 'Salah'].map((opt) => {
                     const aktif = jawaban[s.id] === opt;
                     return (
-                      <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem 1rem', marginBottom: '0.55rem', borderRadius: '10px', border: `1.5px solid ${aktif ? 'var(--brass-strong)' : 'var(--line)'}`, background: aktif ? 'rgba(242,98,42,0.07)' : '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                      <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: 'clamp(0.6rem, 3vw, 0.75rem) clamp(0.75rem, 3vw, 1rem)', marginBottom: '0.55rem', borderRadius: '10px', border: `1.5px solid ${aktif ? 'var(--brass-strong)' : 'var(--line)'}`, background: aktif ? 'rgba(242,98,42,0.07)' : '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                         <input type="radio" name={`soal-${s.id}`} checked={aktif} onChange={() => setJawabanSoal(s.id, opt)} style={{ display: 'none' }} />
                         <span style={{ width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${aktif ? 'var(--brass-strong)' : 'var(--line)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           {aktif && <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--brass-strong)' }} />}
                         </span>
-                        {opt}
+                        <span style={{ fontSize: 'clamp(0.9rem, 3.5vw, 1rem)' }}>{opt}</span>
                       </label>
                     );
                   })}
@@ -335,7 +335,7 @@ export default function KerjakanUjianPage() {
                 <div>
                   {pasangan.map((p, i2) => (
                     <div key={i2} style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.6rem' }}>
-                      <span style={{ minWidth: '32px', fontWeight: 600, color: 'var(--ink-soft)' }}>{p.kiri}</span>
+                      <span style={{ minWidth: '30px', fontWeight: 600, color: 'var(--ink-soft)', fontSize: 'clamp(0.85rem, 3.5vw, 1rem)' }}>{p.kiri}</span>
                       <span style={{ color: 'var(--ink-soft)' }}>→</span>
                       <input type="text" placeholder="Jawaban" value={(jawaban[s.id] && jawaban[s.id][i2]) || ''} onChange={(e) => setJawabanMenjodohkan(s.id, i2, e.target.value)} className="input" style={{ flex: 1, marginTop: 0 }} />
                     </div>
@@ -347,13 +347,13 @@ export default function KerjakanUjianPage() {
         })}
       </div>
 
-      <div style={{ padding: '0.9rem 1.5rem', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', boxShadow: '0 -8px 20px -16px rgba(15,42,74,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button onClick={() => scrollToIndex(activeIndex - 1)} disabled={activeIndex === 0} className="btn-text" style={{ fontSize: '0.95rem', opacity: activeIndex === 0 ? 0.4 : 1 }}>← Sebelumnya</button>
-        {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', margin: 0 }}>{error}</p>}
+      <div style={{ padding: 'clamp(0.7rem, 3vw, 0.9rem) clamp(1rem, 4vw, 1.5rem)', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)', boxShadow: '0 -8px 20px -16px rgba(15,42,74,0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+        <button onClick={() => scrollToIndex(activeIndex - 1)} disabled={activeIndex === 0} className="btn-text" style={{ fontSize: 'clamp(0.85rem, 3.5vw, 0.95rem)', opacity: activeIndex === 0 ? 0.4 : 1, whiteSpace: 'nowrap' }}>← Sebelumnya</button>
+        {error && <p style={{ color: 'var(--danger)', fontSize: '0.8rem', margin: 0 }}>{error}</p>}
         {activeIndex === soalList.length - 1 ? (
-          <button onClick={handleSubmit} disabled={submitting} className="btn-primary">{submitting ? 'Mengirim...' : 'Kirim Jawaban'}</button>
+          <button onClick={handleSubmit} disabled={submitting} className="btn-primary" style={{ fontSize: 'clamp(0.85rem, 3.5vw, 0.95rem)', whiteSpace: 'nowrap' }}>{submitting ? 'Mengirim...' : 'Kirim Jawaban'}</button>
         ) : (
-          <button onClick={() => scrollToIndex(activeIndex + 1)} className="btn-text" style={{ fontSize: '0.95rem' }}>Selanjutnya →</button>
+          <button onClick={() => scrollToIndex(activeIndex + 1)} className="btn-text" style={{ fontSize: 'clamp(0.85rem, 3.5vw, 0.95rem)', whiteSpace: 'nowrap' }}>Selanjutnya →</button>
         )}
       </div>
     </div>
