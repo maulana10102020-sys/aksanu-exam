@@ -12,6 +12,8 @@ export default function KelolaSoalPage() {
   const [soalList, setSoalList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [editingSoalId, setEditingSoalId] = useState(null);
+
   const [jenis, setJenis] = useState('pg');
   const [pertanyaan, setPertanyaan] = useState('');
   const [bobot, setBobot] = useState('');
@@ -60,11 +62,41 @@ export default function KelolaSoalPage() {
   }
 
   function resetForm() {
+    setEditingSoalId(null);
     setPertanyaan(''); setBobot('');
     setOpsiA(''); setOpsiB(''); setOpsiC(''); setOpsiD(''); setOpsiE(''); setKunciPG('A');
     setKunciBS('Benar'); setKunciIsian('');
     setPasangan([{ kiri: '', kanan: '' }]);
     setRubrik([{ aspek: '', bobot: '' }]);
+    setJenis('pg');
+    setError('');
+  }
+
+  function mulaiEditSoal(s) {
+    setEditingSoalId(s.id);
+    setJenis(s.jenis);
+    setPertanyaan(s.pertanyaan);
+    setBobot(String(s.bobot));
+    setError('');
+
+    if (s.jenis === 'pg') {
+      try {
+        const parsed = JSON.parse(s.kunci);
+        setOpsiA(parsed.opsi.A || ''); setOpsiB(parsed.opsi.B || '');
+        setOpsiC(parsed.opsi.C || ''); setOpsiD(parsed.opsi.D || '');
+        setOpsiE(parsed.opsi.E || ''); setKunciPG(parsed.jawaban || 'A');
+      } catch (e) {}
+    } else if (s.jenis === 'benar_salah') {
+      setKunciBS(s.kunci || 'Benar');
+    } else if (s.jenis === 'isian') {
+      setKunciIsian(s.kunci || '');
+    } else if (s.jenis === 'menjodohkan') {
+      try { setPasangan(JSON.parse(s.kunci)); } catch (e) { setPasangan([{ kiri: '', kanan: '' }]); }
+    } else if (s.jenis === 'uraian') {
+      try { setRubrik(JSON.parse(s.kunci)); } catch (e) { setRubrik([{ aspek: '', bobot: '' }]); }
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function tambahBarisPasangan() { setPasangan([...pasangan, { kiri: '', kanan: '' }]); }
@@ -80,7 +112,7 @@ export default function KelolaSoalPage() {
 
   const opsiPGTersedia = ['A', 'B', 'C', 'D', ...(opsiE.trim() ? ['E'] : [])];
 
-  async function handleAddSoal(e) {
+  async function handleSubmitSoal(e) {
     e.preventDefault();
     setError('');
     if (!pertanyaan || !bobot) { setError('Pertanyaan dan bobot wajib diisi.'); return; }
@@ -106,11 +138,21 @@ export default function KelolaSoalPage() {
     }
 
     setSaving(true);
-    const { error: insertError } = await supabase.from('soal').insert([
-      { ujian_id: id, jenis, pertanyaan, bobot: Number(bobot), kunci: kunciData },
-    ]);
-    setSaving(false);
-    if (insertError) { setError('Gagal menyimpan: ' + insertError.message); return; }
+
+    if (editingSoalId) {
+      const { error: updateError } = await supabase.from('soal').update({
+        jenis, pertanyaan, bobot: Number(bobot), kunci: kunciData,
+      }).eq('id', editingSoalId);
+      setSaving(false);
+      if (updateError) { setError('Gagal menyimpan perubahan: ' + updateError.message); return; }
+    } else {
+      const { error: insertError } = await supabase.from('soal').insert([
+        { ujian_id: id, jenis, pertanyaan, bobot: Number(bobot), kunci: kunciData },
+      ]);
+      setSaving(false);
+      if (insertError) { setError('Gagal menyimpan: ' + insertError.message); return; }
+    }
+
     resetForm();
     fetchData();
   }
@@ -118,6 +160,7 @@ export default function KelolaSoalPage() {
   async function handleDeleteSoal(soalId) {
     if (!confirm('Hapus soal ini?')) return;
     await supabase.from('soal').delete().eq('id', soalId);
+    if (editingSoalId === soalId) resetForm();
     fetchData();
   }
 
@@ -146,9 +189,11 @@ export default function KelolaSoalPage() {
     return <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Kunci: {s.kunci}</p>;
   }
 
+  const gradasiBg = 'linear-gradient(160deg, #EAF1FB 0%, #F4F7FB 45%, #FCEDE3 100%)';
+
   if (loading) {
     return (
-      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: gradasiBg }}>
         <div className="spinner" />
       </div>
     );
@@ -156,7 +201,7 @@ export default function KelolaSoalPage() {
   if (!ujian) return <p style={{ padding: '2rem', fontFamily: 'var(--font-sans)' }}>Ujian tidak ditemukan.</p>;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--paper)' }}>
+    <div style={{ minHeight: '100vh', background: gradasiBg }}>
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '2.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <a href="/dashboard" className="btn-text">← Kembali ke Dashboard</a>
@@ -170,9 +215,14 @@ export default function KelolaSoalPage() {
           {statusText}
         </div>
 
-        <div style={{ border: '1px solid var(--line)', borderRadius: '10px', padding: '1.75rem', marginBottom: '2rem', background: 'var(--paper-card)' }}>
-          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: '0 0 1.25rem' }}>Tambah soal</h2>
-          <form onSubmit={handleAddSoal}>
+        <div style={{ border: editingSoalId ? '2px solid var(--brass-strong)' : '1px solid var(--line)', borderRadius: '10px', padding: '1.75rem', marginBottom: '2rem', background: 'var(--paper-card)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: 0 }}>
+              {editingSoalId ? 'Edit soal' : 'Tambah soal'}
+            </h2>
+            {editingSoalId && <button onClick={resetForm} className="btn-text">Batal edit</button>}
+          </div>
+          <form onSubmit={handleSubmitSoal}>
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Jenis Soal</label>
               <select value={jenis} onChange={(e) => setJenis(e.target.value)} className="input">
@@ -256,19 +306,27 @@ export default function KelolaSoalPage() {
             </div>
 
             {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
-            <button type="submit" disabled={saving} className="btn-primary">{saving ? 'Menyimpan...' : '+ Tambah soal'}</button>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button type="submit" disabled={saving} className="btn-primary">
+                {saving ? 'Menyimpan...' : editingSoalId ? 'Simpan perubahan' : '+ Tambah soal'}
+              </button>
+              {editingSoalId && <button type="button" onClick={resetForm} className="btn-text">Batal</button>}
+            </div>
           </form>
         </div>
 
         <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: '0 0 1rem' }}>Daftar soal ({soalList.length})</h2>
         {soalList.length === 0 && <p style={{ color: 'var(--ink-soft)' }}>Belum ada soal.</p>}
         {soalList.map((s, i) => (
-          <div key={s.id} style={{ border: '1px solid var(--line)', borderRadius: '8px', padding: '1.1rem', marginBottom: '0.75rem', background: 'var(--paper-card)' }}>
+          <div key={s.id} style={{ border: editingSoalId === s.id ? '2px solid var(--brass-strong)' : '1px solid var(--line)', borderRadius: '8px', padding: '1.1rem', marginBottom: '0.75rem', background: 'var(--paper-card)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
               <p style={{ fontWeight: 600 }}>
                 Soal {i + 1} <span style={{ fontWeight: 400, color: 'var(--ink-soft)', fontSize: '0.85rem' }}>· {labelJenis[s.jenis] || s.jenis} · {s.bobot} poin</span>
               </p>
-              <button onClick={() => handleDeleteSoal(s.id)} className="btn-text" style={{ color: 'var(--danger)' }}>Hapus</button>
+              <div style={{ display: 'flex', gap: '0.9rem' }}>
+                <button onClick={() => mulaiEditSoal(s)} className="btn-text">Edit</button>
+                <button onClick={() => handleDeleteSoal(s.id)} className="btn-text" style={{ color: 'var(--danger)' }}>Hapus</button>
+              </div>
             </div>
             <p style={{ marginBottom: '0.5rem' }}>{s.pertanyaan}</p>
             {renderKunciDisplay(s)}
