@@ -80,6 +80,7 @@ export default function DashboardPage() {
       <header style={{ padding: '1.4rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(6px)', borderBottom: '1px solid var(--line)' }}>
         <p className="gradient-text" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>Aksanu</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+          <a href="/bank-soal" className="btn-text">Bank Soal</a>
           <div style={{
             width: '34px', height: '34px', borderRadius: '50%',
             background: 'linear-gradient(135deg, var(--brass), var(--brass-strong))',
