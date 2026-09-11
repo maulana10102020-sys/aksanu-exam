@@ -10,15 +10,18 @@ export default function KelolaSoalPage() {
 
   const [ujian, setUjian] = useState(null);
   const [soalList, setSoalList] = useState([]);
+  const [bankList, setBankList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [editingSoalId, setEditingSoalId] = useState(null);
+  const [bankMsg, setBankMsg] = useState('');
 
   const [jenis, setJenis] = useState('pg');
   const [pertanyaan, setPertanyaan] = useState('');
   const [bobot, setBobot] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [bankTerpilih, setBankTerpilih] = useState('');
 
   const [opsiA, setOpsiA] = useState('');
   const [opsiB, setOpsiB] = useState('');
@@ -44,6 +47,11 @@ export default function KelolaSoalPage() {
     const { data: soalData } = await supabase.from('soal').select('*').eq('ujian_id', id).order('id', { ascending: true });
     setUjian(ujianData);
     setSoalList(soalData || []);
+
+    if (ujianData) {
+      const { data: bankData } = await supabase.from('bank_soal').select('*').eq('guru_id', ujianData.guru_id).order('id', { ascending: false });
+      setBankList(bankData || []);
+    }
     setLoading(false);
   }
 
@@ -69,34 +77,60 @@ export default function KelolaSoalPage() {
     setPasangan([{ kiri: '', kanan: '' }]);
     setRubrik([{ aspek: '', bobot: '' }]);
     setJenis('pg');
+    setBankTerpilih('');
     setError('');
   }
 
-  function mulaiEditSoal(s) {
-    setEditingSoalId(s.id);
-    setJenis(s.jenis);
-    setPertanyaan(s.pertanyaan);
-    setBobot(String(s.bobot));
-    setError('');
+  function isiFormDariData(jenisVal, pertanyaanVal, kunciStr, bobotVal) {
+    setJenis(jenisVal);
+    setPertanyaan(pertanyaanVal);
+    if (bobotVal !== null && bobotVal !== undefined) setBobot(String(bobotVal));
 
-    if (s.jenis === 'pg') {
+    if (jenisVal === 'pg') {
       try {
-        const parsed = JSON.parse(s.kunci);
+        const parsed = JSON.parse(kunciStr);
         setOpsiA(parsed.opsi.A || ''); setOpsiB(parsed.opsi.B || '');
         setOpsiC(parsed.opsi.C || ''); setOpsiD(parsed.opsi.D || '');
         setOpsiE(parsed.opsi.E || ''); setKunciPG(parsed.jawaban || 'A');
       } catch (e) {}
-    } else if (s.jenis === 'benar_salah') {
-      setKunciBS(s.kunci || 'Benar');
-    } else if (s.jenis === 'isian') {
-      setKunciIsian(s.kunci || '');
-    } else if (s.jenis === 'menjodohkan') {
-      try { setPasangan(JSON.parse(s.kunci)); } catch (e) { setPasangan([{ kiri: '', kanan: '' }]); }
-    } else if (s.jenis === 'uraian') {
-      try { setRubrik(JSON.parse(s.kunci)); } catch (e) { setRubrik([{ aspek: '', bobot: '' }]); }
+    } else if (jenisVal === 'benar_salah') {
+      setKunciBS(kunciStr || 'Benar');
+    } else if (jenisVal === 'isian') {
+      setKunciIsian(kunciStr || '');
+    } else if (jenisVal === 'menjodohkan') {
+      try { setPasangan(JSON.parse(kunciStr)); } catch (e) { setPasangan([{ kiri: '', kanan: '' }]); }
+    } else if (jenisVal === 'uraian') {
+      try { setRubrik(JSON.parse(kunciStr)); } catch (e) { setRubrik([{ aspek: '', bobot: '' }]); }
     }
+  }
 
+  function mulaiEditSoal(s) {
+    setEditingSoalId(s.id);
+    setError('');
+    isiFormDariData(s.jenis, s.pertanyaan, s.kunci, s.bobot);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function ambilDariBank(bankId) {
+    setBankTerpilih(bankId);
+    if (!bankId) return;
+    const item = bankList.find((b) => String(b.id) === String(bankId));
+    if (!item) return;
+    setEditingSoalId(null);
+    setError('');
+    isiFormDariData(item.jenis, item.pertanyaan, item.kunci, item.bobot);
+  }
+
+  async function simpanKeBank(s) {
+    if (!ujian) return;
+    const { error: bankError } = await supabase.from('bank_soal').insert([
+      { guru_id: ujian.guru_id, jenis: s.jenis, pertanyaan: s.pertanyaan, kunci: s.kunci, bobot: s.bobot },
+    ]);
+    if (!bankError) {
+      setBankMsg('Tersimpan ke Bank Soal ✓');
+      setTimeout(() => setBankMsg(''), 2000);
+      fetchData();
+    }
   }
 
   function tambahBarisPasangan() { setPasangan([...pasangan, { kiri: '', kanan: '' }]); }
@@ -111,6 +145,7 @@ export default function KelolaSoalPage() {
   }
 
   const opsiPGTersedia = ['A', 'B', 'C', 'D', ...(opsiE.trim() ? ['E'] : [])];
+  const bankUntukJenisIni = bankList.filter((b) => b.jenis === jenis);
 
   async function handleSubmitSoal(e) {
     e.preventDefault();
@@ -222,10 +257,23 @@ export default function KelolaSoalPage() {
             </h2>
             {editingSoalId && <button onClick={resetForm} className="btn-text">Batal edit</button>}
           </div>
+
+          {!editingSoalId && bankUntukJenisIni.length > 0 && (
+            <div style={{ marginBottom: '1.25rem', padding: '0.9rem 1rem', background: 'rgba(47,111,237,0.06)', border: '1px solid var(--brass)', borderRadius: '8px' }}>
+              <label style={{ fontSize: '0.85rem', color: 'var(--ink)', fontWeight: 600 }}>Ambil dari Bank Soal ({bankUntukJenisIni.length})</label>
+              <select value={bankTerpilih} onChange={(e) => ambilDariBank(e.target.value)} className="input">
+                <option value="">— Pilih soal dari bank —</option>
+                {bankUntukJenisIni.map((b) => (
+                  <option key={b.id} value={b.id}>{b.pertanyaan.slice(0, 60)}{b.pertanyaan.length > 60 ? '…' : ''}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <form onSubmit={handleSubmitSoal}>
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Jenis Soal</label>
-              <select value={jenis} onChange={(e) => setJenis(e.target.value)} className="input">
+              <select value={jenis} onChange={(e) => { setJenis(e.target.value); setBankTerpilih(''); }} className="input">
                 <option value="pg">Pilihan Ganda</option>
                 <option value="benar_salah">Benar/Salah</option>
                 <option value="menjodohkan">Menjodohkan</option>
@@ -315,7 +363,10 @@ export default function KelolaSoalPage() {
           </form>
         </div>
 
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: '0 0 1rem' }}>Daftar soal ({soalList.length})</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: 0 }}>Daftar soal ({soalList.length})</h2>
+          {bankMsg && <span style={{ fontSize: '0.85rem', color: 'var(--success)', fontWeight: 600 }}>{bankMsg}</span>}
+        </div>
         {soalList.length === 0 && <p style={{ color: 'var(--ink-soft)' }}>Belum ada soal.</p>}
         {soalList.map((s, i) => (
           <div key={s.id} style={{ border: editingSoalId === s.id ? '2px solid var(--brass-strong)' : '1px solid var(--line)', borderRadius: '8px', padding: '1.1rem', marginBottom: '0.75rem', background: 'var(--paper-card)' }}>
@@ -324,6 +375,7 @@ export default function KelolaSoalPage() {
                 Soal {i + 1} <span style={{ fontWeight: 400, color: 'var(--ink-soft)', fontSize: '0.85rem' }}>· {labelJenis[s.jenis] || s.jenis} · {s.bobot} poin</span>
               </p>
               <div style={{ display: 'flex', gap: '0.9rem' }}>
+                <button onClick={() => simpanKeBank(s)} className="btn-text">Simpan ke bank</button>
                 <button onClick={() => mulaiEditSoal(s)} className="btn-text">Edit</button>
                 <button onClick={() => handleDeleteSoal(s.id)} className="btn-text" style={{ color: 'var(--danger)' }}>Hapus</button>
               </div>
