@@ -149,3 +149,21 @@ a { color: inherit; }
   background-clip: text;
   color: transparent;
 }
+.btn-outline {
+  display: inline-block;
+  padding: 0.7rem 1.4rem;
+  background: transparent;
+  color: var(--ink);
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.btn-outline:hover {
+  border-color: var(--brass-strong);
+  color: var(--brass-strong-dark);
+}

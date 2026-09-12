@@ -97,7 +97,7 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.75rem' }}>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 500, margin: 0 }}>Ujian saya</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <a href="/bank-soal" className="btn-text">Bank Soal</a>
+            <a href="/bank-soal" className="btn-outline">Bank Soal</a>
           <a href="/ujian/buat" className="btn-primary">Buat ujian baru</a>
         </div>
       </div>
