@@ -80,7 +80,6 @@ export default function DashboardPage() {
       <header style={{ padding: '1.4rem 2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(6px)', borderBottom: '1px solid var(--line)' }}>
         <p className="gradient-text" style={{ fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>Aksanu</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
-          <a href="/bank-soal" className="btn-text">Bank Soal</a>
           <div style={{
             width: '34px', height: '34px', borderRadius: '50%',
             background: 'linear-gradient(135deg, var(--brass), var(--brass-strong))',
@@ -97,8 +96,11 @@ export default function DashboardPage() {
       <main style={{ maxWidth: '980px', margin: '0 auto', padding: '2.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1.75rem' }}>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 500, margin: 0 }}>Ujian saya</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <a href="/bank-soal" className="btn-text">Bank Soal</a>
           <a href="/ujian/buat" className="btn-primary">Buat ujian baru</a>
         </div>
+      </div>
 
         {loadingUjian && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
