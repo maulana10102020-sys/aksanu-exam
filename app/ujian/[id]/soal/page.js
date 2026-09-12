@@ -323,8 +323,8 @@ export default function KelolaSoalPage() {
     <div style={{ minHeight: '100vh', background: gradasiBg }}>
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '2.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
-          <a href="/dashboard" className="btn-text">← Kembali ke Dashboard</a>
-          <a href={`/ujian/${id}/review`} className="btn-text">Review & Terbitkan →</a>
+          <a href="/dashboard" className="nav-link">← Kembali ke Dashboard</a>
+          <a href={`/ujian/${id}/review`} className="nav-link">Review & Terbitkan →</a>
         </div>
 
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2rem', fontWeight: 500, margin: '0.25rem 0' }}>{ujian.judul}</h1>

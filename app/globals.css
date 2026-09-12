@@ -167,3 +167,23 @@ a { color: inherit; }
   border-color: var(--brass-strong);
   color: var(--brass-strong-dark);
 }
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.nav-link:hover {
+  border-color: var(--brass-strong);
+  color: var(--brass-strong-dark);
+  background: rgba(242,98,42,0.06);
+}

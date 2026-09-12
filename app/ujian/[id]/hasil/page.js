@@ -90,7 +90,7 @@ export default function HasilUjianPage() {
   return (
     <div style={{ minHeight: '100vh', background: gradasiBg }}>
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '2.5rem 2rem' }}>
-        <a href={`/ujian/${id}/soal`} className="btn-text">← Kembali ke Soal</a>
+        <a href={`/ujian/${id}/soal`} className="nav-link">← Kembali ke Soal</a>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '0.5rem', marginBottom: '0.25rem' }}>
           <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.8rem', fontWeight: 500, margin: 0 }}>Hasil Ujian</h1>
           {daftar.length > 0 && (

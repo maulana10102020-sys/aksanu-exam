@@ -75,8 +75,8 @@ export default function ReviewUjianPage() {
     <div style={{ minHeight: '100vh', background: gradasiBg }}>
       <div style={{ maxWidth: '650px', margin: '0 auto', padding: '2.5rem 2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <a href={`/ujian/${id}/soal`} className="btn-text">← Kembali ke Soal</a>
-          <a href={`/ujian/${id}/hasil`} className="btn-text">Lihat Hasil Siswa →</a>
+          <a href={`/ujian/${id}/soal`} className="nav-link">← Kembali ke Soal</a>
+          <a href={`/ujian/${id}/hasil`} className="nav-link">Lihat Hasil Siswa →</a>
         </div>
 
         <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.9rem', fontWeight: 500, margin: '0.5rem 0 0.25rem' }}>Review Ujian</h1>
