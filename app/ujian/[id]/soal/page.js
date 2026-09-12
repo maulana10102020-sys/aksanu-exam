@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import * as XLSX from 'xlsx';
 import { supabase } from '../../../../lib/supabaseClient';
 
 export default function KelolaSoalPage() {
@@ -34,6 +35,9 @@ export default function KelolaSoalPage() {
   const [kunciIsian, setKunciIsian] = useState('');
   const [pasangan, setPasangan] = useState([{ kiri: '', kanan: '' }]);
   const [rubrik, setRubrik] = useState([{ aspek: '', bobot: '' }]);
+
+  const [importHasil, setImportHasil] = useState(null);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('guru');
@@ -199,6 +203,86 @@ export default function KelolaSoalPage() {
     fetchData();
   }
 
+  function unduhTemplateExcel() {
+    const contoh = [
+      { pertanyaan: 'Ibukota Indonesia adalah...', opsi_a: 'Bandung', opsi_b: 'Jakarta', opsi_c: 'Surabaya', opsi_d: 'Medan', opsi_e: '', kunci: 'B', bobot: 10 },
+    ];
+    const ws = XLSX.utils.json_to_sheet(contoh);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Soal PG');
+    XLSX.writeFile(wb, 'template_import_pg.xlsx');
+  }
+
+  function handleFileImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImportHasil(null);
+    setImporting(true);
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheetName = wb.SheetNames[0];
+        const sheet = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+
+        const valid = [];
+        const gagal = [];
+
+        rows.forEach((row, idx) => {
+          const baris = idx + 2;
+          const pertanyaanVal = String(row.pertanyaan || '').trim();
+          const A = String(row.opsi_a || '').trim();
+          const B = String(row.opsi_b || '').trim();
+          const C = String(row.opsi_c || '').trim();
+          const D = String(row.opsi_d || '').trim();
+          const E = String(row.opsi_e || '').trim();
+          const kunciVal = String(row.kunci || '').trim().toUpperCase();
+          const bobotVal = Number(row.bobot) || 0;
+
+          const errs = [];
+          if (!pertanyaanVal) errs.push('pertanyaan kosong');
+          if (!A || !B || !C || !D) errs.push('opsi A-D wajib diisi');
+          if (!['A', 'B', 'C', 'D', 'E'].includes(kunciVal)) errs.push('kunci harus A/B/C/D/E');
+          if (kunciVal === 'E' && !E) errs.push('kunci E tapi opsi E kosong');
+          if (!bobotVal) errs.push('bobot kosong atau 0');
+
+          if (errs.length > 0) {
+            gagal.push({ baris, alasan: errs.join(', ') });
+          } else {
+            valid.push({
+              ujian_id: id,
+              jenis: 'pg',
+              pertanyaan: pertanyaanVal,
+              bobot: bobotVal,
+              kunci: JSON.stringify({ opsi: { A, B, C, D, E }, jawaban: kunciVal }),
+            });
+          }
+        });
+
+        if (valid.length > 0) {
+          const { error: insertError } = await supabase.from('soal').insert(valid);
+          if (insertError) {
+            setImportHasil({ berhasil: 0, gagal: rows.length, detail: [{ baris: '-', alasan: insertError.message }] });
+            setImporting(false);
+            return;
+          }
+        }
+
+        setImportHasil({ berhasil: valid.length, gagal: gagal.length, detail: gagal });
+        setImporting(false);
+        fetchData();
+      } catch (err) {
+        setImportHasil({ berhasil: 0, gagal: 0, detail: [{ baris: '-', alasan: 'Gagal membaca file: ' + err.message }] });
+        setImporting(false);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  }
+
   const labelJenis = { pg: 'Pilihan Ganda', benar_salah: 'Benar/Salah', menjodohkan: 'Menjodohkan', isian: 'Isian', uraian: 'Uraian' };
 
   function renderKunciDisplay(s) {
@@ -248,6 +332,36 @@ export default function KelolaSoalPage() {
 
         <div style={{ padding: '0.9rem 1.1rem', background: statusBg, color: statusWarna, borderRadius: '8px', marginBottom: '2rem', fontWeight: 600, fontSize: '0.92rem' }}>
           {statusText}
+        </div>
+
+        <div style={{ border: '1px solid var(--brass)', borderRadius: '10px', padding: '1.5rem', marginBottom: '2rem', background: 'rgba(47,111,237,0.05)' }}>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.2rem', fontWeight: 500, margin: '0 0 0.5rem' }}>Import Soal dari Excel</h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginBottom: '1rem' }}>
+            Mode instan — khusus Pilihan Ganda. Unduh template dulu, isi, lalu unggah.
+          </p>
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button onClick={unduhTemplateExcel} className="btn-text" style={{ border: '1px solid var(--line)', padding: '0.5rem 1rem', borderRadius: '6px', background: '#fff' }}>
+              Unduh Template
+            </button>
+            <label className="btn-primary" style={{ cursor: 'pointer', margin: 0 }}>
+              {importing ? 'Memproses...' : 'Unggah File Excel'}
+              <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileImport} disabled={importing} style={{ display: 'none' }} />
+            </label>
+          </div>
+
+          {importHasil && (
+            <div style={{ marginTop: '1rem', padding: '0.9rem 1rem', background: '#fff', borderRadius: '8px', border: '1px solid var(--line)' }}>
+              <p style={{ margin: '0 0 0.4rem', fontWeight: 600 }}>
+                <span style={{ color: 'var(--success)' }}>{importHasil.berhasil} berhasil diimpor</span>
+                {importHasil.gagal > 0 && <span style={{ color: 'var(--danger)' }}> · {importHasil.gagal} dilewati</span>}
+              </p>
+              {importHasil.detail.length > 0 && (
+                <div style={{ fontSize: '0.8rem', color: 'var(--ink-soft)' }}>
+                  {importHasil.detail.map((d, i) => <p key={i} style={{ margin: '0.2rem 0' }}>Baris {d.baris}: {d.alasan}</p>)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div style={{ border: editingSoalId ? '2px solid var(--brass-strong)' : '1px solid var(--line)', borderRadius: '10px', padding: '1.75rem', marginBottom: '2rem', background: 'var(--paper-card)' }}>
