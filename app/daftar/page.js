@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient';
 
 export default function DaftarPage() {
   const [nama, setNama] = useState('');
@@ -27,32 +26,21 @@ export default function DaftarPage() {
 
     setLoading(true);
 
-    const { data: sudahAda } = await supabase
-      .from('guru')
-      .select('id')
-      .eq('email', email)
-      .single();
-
-    if (sudahAda) {
-      setLoading(false);
-      setError('Email ini sudah terdaftar. Coba masuk saja.');
-      return;
-    }
-
-    const { data, error: insertError } = await supabase
-      .from('guru')
-      .insert([{ nama, email, password }])
-      .select()
-      .single();
+    const res = await fetch('/api/daftar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nama, email, password }),
+    });
+    const result = await res.json();
 
     setLoading(false);
 
-    if (insertError) {
-      setError('Gagal mendaftar: ' + insertError.message);
+    if (!res.ok) {
+      setError(result.error || 'Gagal mendaftar.');
       return;
     }
 
-    localStorage.setItem('guru', JSON.stringify(data));
+    localStorage.setItem('guru', JSON.stringify(result.guru));
     router.push('/dashboard');
   }
 
@@ -83,40 +71,20 @@ export default function DaftarPage() {
 
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Nama Lengkap</label>
-            <input
-              type="text"
-              className="input"
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              required
-            />
+            <input type="text" className="input" value={nama} onChange={(e) => setNama(e.target.value)} required />
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Email</label>
-            <input
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
 
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Kata Sandi</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
 
-          {error && (
-            <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>
-          )}
+          {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
 
           <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', textAlign: 'center', marginBottom: '1rem' }}>
             {loading ? 'Mendaftarkan...' : 'Daftar'}

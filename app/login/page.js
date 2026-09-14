@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabaseClient';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -16,21 +15,21 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    const { data, error: queryError } = await supabase
-      .from('guru')
-      .select('*')
-      .eq('email', email)
-      .eq('password', password)
-      .single();
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const result = await res.json();
 
     setLoading(false);
 
-    if (queryError || !data) {
-      setError('Email atau kata sandi tidak cocok. Coba lagi.');
+    if (!res.ok) {
+      setError(result.error || 'Email atau kata sandi tidak cocok.');
       return;
     }
 
-    localStorage.setItem('guru', JSON.stringify(data));
+    localStorage.setItem('guru', JSON.stringify(result.guru));
     router.push('/dashboard');
   }
 
@@ -61,29 +60,15 @@ export default function LoginPage() {
 
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Email</label>
-            <input
-              type="email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
 
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>Kata Sandi</label>
-            <input
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
 
-          {error && (
-            <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>
-          )}
+          {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
 
           <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', textAlign: 'center' }}>
             {loading ? 'Memeriksa...' : 'Masuk'}
