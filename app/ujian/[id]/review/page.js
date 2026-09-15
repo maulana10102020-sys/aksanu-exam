@@ -17,7 +17,7 @@ export default function ReviewUjianPage() {
   const [soalList, setSoalList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
-  const [disalin, setDisalin] = useState(false);
+  const [disalin, setDisalin] = useState('');
 
   useEffect(() => { fetchData(); }, [id]);
 
@@ -62,14 +62,15 @@ export default function ReviewUjianPage() {
     if (!error) fetchData();
   }
 
-  function salinLink() {
-    navigator.clipboard.writeText(linkUjian);
-    setDisalin(true);
-    setTimeout(() => setDisalin(false), 1800);
+  function salinLink(link, jenis) {
+    navigator.clipboard.writeText(link);
+    setDisalin(jenis);
+    setTimeout(() => setDisalin(''), 1800);
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
   const linkUjian = ujian.kode_ujian ? `${siteUrl}/kerjakan/${ujian.kode_ujian}` : null;
+  const linkInstan = ujian.kode_ujian ? `${siteUrl}/kerjakan-instan/${ujian.kode_ujian}` : null;
 
   return (
     <div style={{ minHeight: '100vh', background: gradasiBg }}>
@@ -124,14 +125,25 @@ export default function ReviewUjianPage() {
 
         {ujian.kode_ujian && linkUjian && (
           <div style={{ padding: '1.75rem', borderRadius: '14px', background: 'rgba(47,125,79,0.08)', border: '1px solid var(--success)' }}>
-            <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: '1rem' }}>Ujian sudah diterbitkan</p>
-            <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginBottom: '0.6rem' }}>Bagikan tautan ini ke siswa</p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <div style={{ flex: 1, padding: '0.75rem 1rem', background: '#fff', border: '1px solid var(--line)', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.9rem' }}>
+            <p style={{ color: 'var(--success)', fontWeight: 600, marginBottom: '1.25rem' }}>Ujian sudah diterbitkan</p>
+
+            <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginBottom: '0.5rem' }}>Link Ujian (tampilan lengkap, per soal)</p>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <div style={{ flex: 1, padding: '0.75rem 1rem', background: '#fff', border: '1px solid var(--line)', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.85rem' }}>
                 {linkUjian}
               </div>
-              <button onClick={salinLink} className="btn-primary" style={{ flexShrink: 0, fontSize: '0.85rem' }}>
-                {disalin ? 'Disalin ✓' : 'Salin'}
+              <button onClick={() => salinLink(linkUjian, 'lengkap')} className="btn-primary" style={{ flexShrink: 0, fontSize: '0.85rem' }}>
+                {disalin === 'lengkap' ? 'Disalin ✓' : 'Salin'}
+              </button>
+            </div>
+
+            <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginBottom: '0.5rem' }}>Link Kerjakan Instan (ketik cepat semua jawaban)</p>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ flex: 1, padding: '0.75rem 1rem', background: '#fff', border: '1px solid var(--line)', borderRadius: '8px', wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                {linkInstan}
+              </div>
+              <button onClick={() => salinLink(linkInstan, 'instan')} className="btn-primary" style={{ flexShrink: 0, fontSize: '0.85rem' }}>
+                {disalin === 'instan' ? 'Disalin ✓' : 'Salin'}
               </button>
             </div>
           </div>
