@@ -10,14 +10,12 @@ export default function KerjakanInstanPage() {
   const [soalList, setSoalList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState('identitas');
-  const [showRef, setShowRef] = useState(false);
 
   const [nama, setNama] = useState('');
   const [nis, setNis] = useState('');
   const [kelas, setKelas] = useState('');
 
-  const [teksJawaban, setTeksJawaban] = useState('');
-  const [parseErrors, setParseErrors] = useState([]);
+  const [jawaban, setJawaban] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [skorAkhir, setSkorAkhir] = useState(0);
@@ -43,59 +41,19 @@ export default function KerjakanInstanPage() {
     setStep('mengerjakan');
   }
 
-  function parseTeksJawaban() {
-    const jawaban = {};
-    const errs = [];
-    const baris = teksJawaban.split('\n').map((b) => b.trim()).filter((b) => b);
-
-    baris.forEach((b, idx) => {
-      const match = b.match(/^(\d+)\s+(.+)$/);
-      if (!match) {
-        errs.push(`Baris "${b}" tidak dikenali. Format: nomor spasi jawaban.`);
-        return;
-      }
-      const nomor = parseInt(match[1], 10);
-      const jawabanRaw = match[2].trim();
-      const soal = soalList[nomor - 1];
-      if (!soal) {
-        errs.push(`Nomor ${nomor} tidak ada di ujian ini.`);
-        return;
-      }
-
-      if (soal.jenis === 'pg') {
-        const huruf = jawabanRaw.toUpperCase().charAt(0);
-        if (!['A', 'B', 'C', 'D', 'E'].includes(huruf)) {
-          errs.push(`Nomor ${nomor}: jawaban harus A-E, ditulis "${jawabanRaw}".`);
-          return;
-        }
-        jawaban[soal.id] = huruf;
-      } else if (soal.jenis === 'benar_salah') {
-        const lower = jawabanRaw.toLowerCase();
-        if (lower.startsWith('b')) jawaban[soal.id] = 'Benar';
-        else if (lower.startsWith('s')) jawaban[soal.id] = 'Salah';
-        else { errs.push(`Nomor ${nomor}: jawaban harus Benar/Salah, ditulis "${jawabanRaw}".`); return; }
-      } else if (soal.jenis === 'menjodohkan') {
-        try {
-          const pasangan = JSON.parse(soal.kunci);
-          const jawabanIdx = {};
-          jawabanRaw.split(';').forEach((pair) => {
-            const [kiri, kanan] = pair.split('=').map((s) => s.trim());
-            const idxPasangan = pasangan.findIndex((p) => p.kiri.toLowerCase() === (kiri || '').toLowerCase());
-            if (idxPasangan >= 0) jawabanIdx[idxPasangan] = kanan;
-          });
-          jawaban[soal.id] = jawabanIdx;
-        } catch (e) {
-          errs.push(`Nomor ${nomor}: format menjodohkan salah, gunakan kiri=kanan;kiri=kanan.`);
-        }
-      } else {
-        jawaban[soal.id] = jawabanRaw;
-      }
-    });
-
-    return { jawaban, errs };
+  function setJawabanSoal(soalId, value) { setJawaban({ ...jawaban, [soalId]: value }); }
+  function setJawabanMenjodohkan(soalId, idx, value) {
+    const current = jawaban[soalId] || {};
+    setJawaban({ ...jawaban, [soalId]: { ...current, [idx]: value } });
   }
 
-  function hitungSkorDanRekap(jawaban) {
+  function apaSudahDijawab(soal) {
+    const j = jawaban[soal.id];
+    if (soal.jenis === 'menjodohkan') return j && Object.values(j).some((v) => v && v.trim());
+    return j && String(j).trim();
+  }
+
+  function hitungSkorDanRekap() {
     let skor = 0;
     const rekap = [];
     soalList.forEach((s, idx) => {
@@ -128,17 +86,8 @@ export default function KerjakanInstanPage() {
 
   async function handleSubmit() {
     setError('');
-    const { jawaban, errs } = parseTeksJawaban();
-    setParseErrors(errs);
-    if (errs.length > 0) return;
-
-    if (Object.keys(jawaban).length === 0) {
-      setError('Belum ada jawaban yang ditulis.');
-      return;
-    }
-
     setSubmitting(true);
-    const { skor, rekap } = hitungSkorDanRekap(jawaban);
+    const { skor, rekap } = hitungSkorDanRekap();
     const { error: insertError } = await supabase.from('jawaban_siswa').insert([
       { ujian_id: ujian.id, nama, nis, kelas, jawaban: JSON.stringify(jawaban), skor_otomatis: skor, status: 'terkirim' },
     ]);
@@ -167,6 +116,8 @@ export default function KerjakanInstanPage() {
       </div>
     );
   }
+
+  const jumlahTerjawab = soalList.filter(apaSudahDijawab).length;
 
   if (step === 'selesai') {
     const benar = rekapAkhir.filter((r) => r.status === 'benar').map((r) => r.nomor);
@@ -241,61 +192,119 @@ export default function KerjakanInstanPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: gradasiBg, padding: 'clamp(1rem, 4vw, 2rem)' }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: '0 0 0.25rem' }}>{ujian.judul}</p>
-        <p style={{ color: 'var(--ink-soft)', marginBottom: '1.5rem' }}>{nama} · Kelas {kelas} · {soalList.length} soal</p>
-
-        <div style={{ background: 'var(--paper-card)', borderRadius: '14px', padding: '1.5rem', marginBottom: '1rem', boxShadow: '0 20px 45px -28px rgba(15,42,74,0.3)' }}>
-          <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)', marginBottom: '0.75rem' }}>
-            Tulis jawaban satu baris per nomor, format: <strong>nomor spasi jawaban</strong>. Contoh:
-          </p>
-          <pre style={{ background: 'var(--paper)', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '1rem', fontFamily: 'monospace' }}>
-{`1 A
-2 Benar
-3 D
-4 Jakarta`}
-          </pre>
-          <textarea
-            className="input"
-            rows={Math.max(8, soalList.length)}
-            value={teksJawaban}
-            onChange={(e) => setTeksJawaban(e.target.value)}
-            style={{ fontFamily: 'monospace', fontSize: '0.95rem' }}
-            placeholder={`1 A\n2 B\n3 C`}
-          />
-
-          {parseErrors.length > 0 && (
-            <div style={{ marginTop: '1rem', padding: '0.9rem 1rem', background: 'rgba(179,66,58,0.08)', border: '1px solid var(--danger)', borderRadius: '8px' }}>
-              <p style={{ color: 'var(--danger)', fontWeight: 600, marginBottom: '0.4rem', fontSize: '0.9rem' }}>Ada yang perlu diperbaiki:</p>
-              {parseErrors.map((e, i) => <p key={i} style={{ color: 'var(--danger)', fontSize: '0.85rem', margin: '0.2rem 0' }}>• {e}</p>)}
-            </div>
-          )}
-          {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '0.75rem' }}>{error}</p>}
+      <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+        <div style={{ position: 'sticky', top: 0, background: 'rgba(244,247,251,0.9)', backdropFilter: 'blur(6px)', paddingBottom: '1rem', marginBottom: '1rem', zIndex: 5 }}>
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: '1.3rem', fontWeight: 500, margin: '0 0 0.2rem' }}>{ujian.judul}</p>
+          <p style={{ color: 'var(--ink-soft)', fontSize: '0.9rem' }}>{nama} · Kelas {kelas} · Terisi {jumlahTerjawab} dari {soalList.length}</p>
         </div>
 
-        <button onClick={() => setShowRef(!showRef)} className="btn-text" style={{ marginBottom: '1rem' }}>
-          {showRef ? 'Sembunyikan daftar soal' : 'Lihat daftar soal (referensi)'}
-        </button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          {soalList.map((s, idx) => {
+            let opsi = {};
+            if (s.jenis === 'pg') { try { opsi = JSON.parse(s.kunci).opsi; } catch (e) {} }
+            let pasangan = [];
+            let kananOptions = [];
+            if (s.jenis === 'menjodohkan') {
+              try { pasangan = JSON.parse(s.kunci); kananOptions = [...new Set(pasangan.map((p) => p.kanan))]; } catch (e) {}
+            }
+            const fullWidth = s.jenis === 'menjodohkan' || s.jenis === 'uraian';
 
-        {showRef && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            {soalList.map((s, idx) => {
-              let opsi = {};
-              if (s.jenis === 'pg') { try { opsi = JSON.parse(s.kunci).opsi; } catch (e) {} }
-              return (
-                <div key={s.id} style={{ background: 'var(--paper-card)', borderRadius: '8px', padding: '1rem', marginBottom: '0.6rem', border: '1px solid var(--line)' }}>
-                  <p style={{ fontWeight: 600, marginBottom: '0.4rem' }}>{idx + 1}. {s.pertanyaan}</p>
-                  {s.jenis === 'pg' && (
-                    <div style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>
-                      {['A','B','C','D','E'].filter((h) => opsi[h]).map((h) => <p key={h} style={{ margin: '0.1rem 0' }}>{h}. {opsi[h]}</p>)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
+            return (
+              <div
+                key={s.id}
+                style={{
+                  gridColumn: fullWidth ? '1 / -1' : 'auto',
+                  background: 'var(--paper-card)',
+                  border: '1px solid var(--line)',
+                  borderRadius: '10px',
+                  padding: '0.9rem 1rem',
+                }}
+              >
+                <p style={{ fontSize: '0.75rem', color: 'var(--ink-soft)', margin: '0 0 0.3rem' }}>Nomor {idx + 1}</p>
+                <p style={{ fontSize: '0.85rem', margin: '0 0 0.6rem', lineHeight: 1.4 }}>
+                  {s.pertanyaan.length > 70 ? s.pertanyaan.slice(0, 70) + '…' : s.pertanyaan}
+                </p>
 
+                {s.jenis === 'pg' && (
+                  <div style={{ display: 'flex', gap: '0.35rem' }}>
+                    {['A', 'B', 'C', 'D', 'E'].filter((h) => opsi[h]).map((huruf) => {
+                      const aktif = jawaban[s.id] === huruf;
+                      return (
+                        <button
+                          key={huruf}
+                          type="button"
+                          onClick={() => setJawabanSoal(s.id, huruf)}
+                          style={{
+                            width: '32px', height: '32px', borderRadius: '6px',
+                            border: aktif ? '2px solid var(--brass-strong)' : '1px solid var(--line)',
+                            background: aktif ? 'var(--brass-strong)' : '#fff',
+                            color: aktif ? '#fff' : 'var(--ink-soft)',
+                            fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                          }}
+                        >
+                          {huruf}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {s.jenis === 'benar_salah' && (
+                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                    {['Benar', 'Salah'].map((opt) => {
+                      const aktif = jawaban[s.id] === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setJawabanSoal(s.id, opt)}
+                          style={{
+                            padding: '0.4rem 0.8rem', borderRadius: '6px',
+                            border: aktif ? '2px solid var(--brass-strong)' : '1px solid var(--line)',
+                            background: aktif ? 'var(--brass-strong)' : '#fff',
+                            color: aktif ? '#fff' : 'var(--ink-soft)',
+                            fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                          }}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {s.jenis === 'isian' && (
+                  <input type="text" className="input" style={{ marginTop: 0 }} value={jawaban[s.id] || ''} onChange={(e) => setJawabanSoal(s.id, e.target.value)} />
+                )}
+
+                {s.jenis === 'uraian' && (
+                  <textarea className="input" style={{ marginTop: 0 }} rows={3} value={jawaban[s.id] || ''} onChange={(e) => setJawabanSoal(s.id, e.target.value)} />
+                )}
+
+                {s.jenis === 'menjodohkan' && (
+                  <div>
+                    {pasangan.map((p, i2) => (
+                      <div key={i2} style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <span style={{ minWidth: '80px', fontSize: '0.85rem', fontWeight: 600, color: 'var(--ink-soft)' }}>{p.kiri}</span>
+                        <select
+                          className="input"
+                          style={{ marginTop: 0, flex: 1 }}
+                          value={(jawaban[s.id] && jawaban[s.id][i2]) || ''}
+                          onChange={(e) => setJawabanMenjodohkan(s.id, i2, e.target.value)}
+                        >
+                          <option value="">— pilih —</option>
+                          {kananOptions.map((opt, oi) => <option key={oi} value={opt}>{opt}</option>)}
+                        </select>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {error && <p style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</p>}
         <button onClick={handleSubmit} disabled={submitting} className="btn-primary" style={{ width: '100%', textAlign: 'center', padding: '0.9rem' }}>
           {submitting ? 'Mengirim...' : 'Kirim Jawaban'}
         </button>
